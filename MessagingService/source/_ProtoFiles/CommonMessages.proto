@@ -1,0 +1,60 @@
+syntax = "proto3";
+option optimize_for = LITE_RUNTIME;
+
+//import "google/protobuf/any.proto";
+//import "google/protobuf/timestamp.proto";
+
+package Matrix.MsgService.CommonMessages;
+
+/* Value stored in the MsgTypeID field - determines the type of message it is.
+** It is used to interpret a Header to parse it into the proper structure.
+** In general, the name of the message type can be translated to the ProtoCmd name
+**     by converting to Pascal case and removing the underscore
+**     e.g. DOOR_STATUS_REQ is the MsgType for the DoorStatusReq message
+** Some messages may handle multiple MsgTypeIDs
+*/
+enum MsgType
+{
+   INVALID_MSG_TYPE = 0;
+   ACK = 1;
+   LOGON = 2;
+   LOGOFF = 3;
+   SUBSCRIBE = 4;
+   UNSUBSCRIBE = 5;
+   
+   CUSTOM = 100;
+  
+}
+
+//For now, this message is here to help interpret all the other messages.
+//In future we may want to always send two messages but for ease of programming, 
+//we are just including the two fields in each message.
+//msgKey is an integer sequence that is used to marry a reply message to a request message
+message Header {
+   MsgType msgTypeID = 1;
+   int32 msgKey = 2;
+   int32 origClientType = 3; //the client type of the originating client
+   int32 origClientID = 4;   //the client ID of the originating client
+   int32 destClientType = 5;	//the client type of the destination client if message is intended for a specific client
+   int32 destClientID = 6;	//the client type of the destination client if message is intended for a specific client
+   repeated int32 ackKeys = 7; //keys that this message is acking (does not have to be an ACK message
+   int32 topic = 8;
+   bool isArchived = 9;
+   
+   bytes msg = 15;
+}
+
+
+//message for LOGON MsgType
+message Logon {
+   int32 clientType = 1;
+   int32 clientID = 2; //unique id for client
+}
+
+//message for SUBSCRIBE/UNSUBSCRIBE MsgTypes
+message Subscribe {
+   int32 clientType = 1;
+   int32 clientID = 2;
+   int32 topic = 3;
+}
+

@@ -1,0 +1,61 @@
+-----------------
+To make in windows:
+-----------------
+Pre Steps needed once for each computer: 
+	a.  Download and install CMake
+	b.  Follow source\ThirdParty\boost\BuildInstructions.txt
+1.  modify SetWorkspace.bat to set WORKSPACE to the path to this directory and to set CMAKEHOME to the path to CMake.exe
+2.  open a command prompt and navigate to this directory
+3.  At the command prompt, perform the following:
+		SetWorkspace.bat
+		CommandScripts\WinTools\Build_All.bat
+4.  The previous step will create the Visual Studio projects and solution: %WORKSPACE%\build_WinHost\Common.sln
+5.  Open Common.sln in Visual Studio and build.  The output will be in %WORKSPACE%\OutputDebug\WinHost or %WORKSPACE%\OutputRelease\WinHost
+OPTIONAL: Build_All.bat completely rebuilds all projects including test projects.  You may run CommandScripts\WinTools\Build_Min.bat to do a minimal build
+
+-----------------
+To make in Ubuntu Linux:
+-----------------
+Pre Steps needed once for each computer/VM
+	a.	sudo apt-get install cmake
+	b.	sudo apt-get install autoconf
+	c.	sudo apt-get install libtool
+
+1. Open a Terminal and navigate to this directory
+2. At the Terminal prompt, perform the following:
+		export WORKSPACE=path/to/this/directory
+		./CommandScripts/LinuxTools/BuildLinux.sh
+3.  The previous step will compile the application.  The output will be in $WORKSPACE/OutputRelease/LinuxHost
+OPTIONAL:  You can define the following environment variables to modify the build
+		export NO_CLEAN_FIRST=0		(to completely rebuild all projects)
+		export BYPASS_TESTS=1		(to skip creating the unit test projects)
+		
+-----------------
+To make for Cylon:
+-----------------
+Pre Steps needed once for each computer/VM
+	a.	sudo apt-get install cmake
+	b.	sudo apt-get install autoconf
+	c.	sudo apt-get install libtool
+	d.	sudo apt-get install g++-arm-linux-gnueabi
+1. $WORKSPACE/LinuxTools/SetEnvCrossCompileCylon.sh sets up variables for cross compiling.  
+It is called by BuildCylon.sh.  The paths are set for using the compiler installed by apt-get install gcc-arm-linux-gnueabi.
+You may need to change the environment variables in this script to match your cross compiler toolchain settings.
+2. Follow the Ubuntu Linux instructions changing Linux to Cylon in all steps
+
+-----------------
+Third Party Libraries
+-----------------
+Third party libraries are in WORKSPACE\source\ThirdParty.
+The prebuild library files will be in WORKSPACE\source\ThirdParty\lib\XyzHost  (where Xyz is the type of host: Win, Linux, Cylon)
+For the third party libraries, the include files, tar or zip of the source code, and instructions for building them will be under their respective directories.
+
+-----------------
+CMake files
+-----------------
+The top level CMakeList.txt in WORKSPACE starts the CMake process.  It includes WORKSPACE/source/CMakeList.txt.
+The WORKSPACE/source/CMakeLists.txt includes CMakeInclude.txt which is used to find all the third party libraries needed by all the projects to be built.
+The WORKSPACE/source/CMakeLists.txt also includes each of the CMakeLists.txt for each project under the Product and Tests directories.
+
+NOTE:  Currently projects are being built statically because the Cylon board does not have standard c++ libraries installed.  
+We may want to change this in future.  

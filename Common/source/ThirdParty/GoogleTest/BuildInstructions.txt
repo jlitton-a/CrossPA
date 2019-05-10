@@ -1,0 +1,52 @@
+We use googlemock and googletest for unit testing of our executables.
+This procedure assumes ${WORKSPACE} points to the Common workspace.
+
+LINUX-Ubuntu and LINUX-Cylon
+============
+Note the procedure below creates the googlemock and googletest static libraries
+for the Cylon cross compilers.  To install googlemock and
+googletest  for the LinuxHost x86_64 compiler, delete the entire
+googletest-master directory and repeat the steps below with
+SetLinuxEnv.sh.
+
+Installation procedure:
+1. cd ${WORKSPACE}
+2. . script/LinuxTools/Set<YOUR HOST HERE>Env.sh
+3.	cd $COMMON_THIRDPARTY_HOME/GoogleTest
+4.	unzip googletest-master.zip
+5. cd googletest-master/googletest
+6. autoreconf -fvi
+7.	./configure --build=${CROSS_COMPILE_BUILD} --host=${CROSS_COMPILE_HOST} --prefix=${CROSS_COMPILE_FULL_HOST}/usr
+8.	make 
+9. cd googletest-master/googlemock
+10. autoreconf -fvi
+11.	./configure --build=${CROSS_COMPILE_BUILD} --host=${CROSS_COMPILE_HOST} --prefix=${CROSS_COMPILE_FULL_HOST}/usr
+12.	make 
+
+The required static libraries are now in googlemock/lib/.libs and
+googletest/lib/.libs.  They are:
+
+- libgmock.a
+- libgtest.a
+
+Copy these to the proper ${THIRDPARTY}/GoogleTest/<YOUR HOST HERE>/...  directory.
+
+
+Windows
+=======
+unzip the googletest-master
+build gtest
+	Go to googletest-master\googletest\msvc directory and open the gtest-md.sln file
+	Select the Debug configuration and compile the gtest-md project
+	Select the Release configuration and compile the gtest-md project
+build gmock
+	Go to googletest-master\googlemock\msvc directory and open the gmock.sln file
+	Select properties on the gmock project and goto C/C++ - Code Generation - Runtime Library and change to /MDd for Debug configuration and /MD for Release configuration
+	Select the Debug configuration and compile the gmock project
+	Select the Release configuration and compile the gmock project
+Copy the gmock.lib and gmock.pdb files from googlemock\msvc\2010\Debug and from the googletest\msvc\2010\Release directories to the proper ${THIRDPARTY}\GoogleTest\<YOUR HOST HERE>\...  directory.
+Rename gtestd.lib to gtest.lib in googletest\msvc\gtest\Debug directory and copy to the ${COMMON_THIRDPARTY_LIB_PATH_DEBUG} directory.
+Copy gtest.lib from the googletest\msvc\gtest\Release directory to the ${COMMON_THIRDPARTY_LIB_PATH_RELEASE} directory.
+If this is a new version of google test:
+   copy the entire gmock directory from googlemock\include\ to ${THIRDPARTY}\GoogleTest\Include directory
+   copy the entire gtest directory from googletest\include\ to ${THIRDPARTY}\GoogleTest\Include directory

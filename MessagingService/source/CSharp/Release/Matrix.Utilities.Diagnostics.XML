@@ -1,0 +1,483 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Matrix.Utilities.Diagnostics</name>
+    </assembly>
+    <members>
+        <member name="T:Matrix.Utilities.Diagnostics.Settings">
+            <summary>
+            Static class used to provide diagnostic settings
+            </summary>
+        </member>
+        <member name="T:Matrix.Utilities.Diagnostics.Settings.DiagnosticCmd">
+            <summary>
+            *** VALUES MUST MATCH SAME ENUM IN EXTERNALEVENTTHREAD.CPP ***
+            </summary>
+        </member>
+        <member name="F:Matrix.Utilities.Diagnostics.Settings.DiagnosticCmd.DebugSetWriteToTrace">
+            <summary>
+            Write only to the Trace
+            </summary>
+        </member>
+        <member name="F:Matrix.Utilities.Diagnostics.Settings.DiagnosticCmd.DebugSetWriteToConsole">
+            <summary>
+            Write to the trace and the console
+            </summary>
+        </member>
+        <member name="F:Matrix.Utilities.Diagnostics.Settings.DiagnosticCmd.MercurySetDriverDebugLevel">
+            <summary>
+            Debug level for telling Mercury Controllers to set their Driver Debug level
+            </summary>
+        </member>
+        <member name="F:Matrix.Utilities.Diagnostics.Settings.DiagnosticCmd.MercurySendCmdString">
+            <summary>
+            Debug level for writing Mercury CmdString in addition to informational messages
+            </summary>
+        </member>
+        <member name="F:Matrix.Utilities.Diagnostics.Settings.DiagnosticCmd.MercurySendCmdFile">
+            <summary>
+            Debug level for writing Mercury CmdFile in addition to informational messages
+            </summary>
+        </member>
+        <member name="T:Matrix.Utilities.Diagnostics.ErrorDisplay">
+            <summary>
+            Standard Form used to display error messages
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.ErrorDisplay.DisplayErrorMessage(System.String,System.String,System.String,System.String)">
+            <summary>
+            Constructor used to setup the form
+            </summary>
+            <param name="message">message to be displayed in the top box</param>
+            <param name="additionalDetails">Additional information to be displayed in the second box</param>
+            <param name="errorText">error text for the third box</param>
+            <param name="details">additional details</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.ErrorDisplay.#ctor">
+            <summary>
+            Standard constructor needed for the designer
+            </summary>
+        </member>
+        <member name="F:Matrix.Utilities.Diagnostics.ErrorDisplay.components">
+            <summary>
+            Required designer variable.
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.ErrorDisplay.Dispose(System.Boolean)">
+            <summary>
+            Clean up any resources being used.
+            </summary>
+            <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.ErrorDisplay.InitializeComponent">
+            <summary>
+            Required method for Designer support - do not modify
+            the contents of this method with the code editor.
+            </summary>
+        </member>
+        <member name="T:Matrix.Utilities.Diagnostics.FrontierException">
+            <summary>
+            Exception that allows for displaying the message in the main text
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.FrontierException.#ctor">
+            <summary>
+            Basic constructor
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.FrontierException.#ctor(System.String)">
+            <summary>
+            Constructor with a message
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.FrontierException.#ctor(System.String,System.Exception)">
+            <summary>
+            Constructor with a message and another exception
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.FrontierException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Constructor for serialization
+            </summary>
+        </member>
+        <member name="T:Matrix.Utilities.Diagnostics.MessageLogger">
+            <summary>
+            Class used to Log messages and exceptions to Windows Event Viewer, Trace Window, or MessageBox
+            </summary>
+        </member>
+        <member name="E:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandlerCalled">
+            <summary>
+            Fired when ErrorHandler is called.
+            Set to Handled to true to stop MessageLogger from displaying a 
+            message box or logging to the Windows event log.
+            </summary>
+        </member>
+        <member name="T:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandlerEventArg">
+            <summary>
+            EventArg class for ErrorHandlerCalled event
+            </summary>
+        </member>
+        <member name="P:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandlerEventArg.ThreadID">
+            <summary>
+            The ID of the thread that threw the exception.
+            (e.g. System.Threading.Thread.CurrentThread.ManagedThreadId)
+            </summary>
+        </member>
+        <member name="P:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandlerEventArg.ThrownException">
+            <summary>
+            The Exception that was thrown.  
+            It may be null if ErrorHandler was called with just a message.
+            </summary>
+        </member>
+        <member name="P:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandlerEventArg.Handled">
+            <summary>
+            Set to true if the error was handled.
+            If it was handled, MessageLogger will not display a message box or log to the Windows event log.
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandlerEventArg.#ctor(System.Int32,System.Exception)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="threadID">ID of thread to handle the event</param>
+            <param name="ex">Exception that was handled</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.OnErrorHandlerCalled(Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandlerEventArg)">
+            <summary>
+            Called when ErrorHandler was called
+            </summary>
+            <param name="eventArgs"></param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.Init">
+            <summary>
+            Initializes the MessageLogger using info in the application's config file.
+            Automatically called on static initialization.  Gets values from Configuration file.
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.Init(System.Boolean,System.Boolean,System.String)">
+            <summary>
+            Initializes the MessageLogger using parameters; overrides values already set by Init()
+            </summary>
+            <param name="writeToConsole">Should messages be written to the Console; from MxD, this is the -DEBUG flag</param>
+            <param name="isAService">Is this a Service or Wks application</param>
+            <param name="debugPrefix">A prefix to tag on to messages in the Trace window</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.InitService(System.String,System.Boolean,System.String)">
+            <summary>
+            Initializes the MessageLogger using parameters
+            </summary>
+            <param name="applicationName">Name to use when logging Windows Events</param>
+            <param name="writeToConsole">Should messages be written to the Console</param>
+            <param name="debugPrefix">A prefix to tag on to messages in the Trace window</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.InitForUnitTest">
+            <summary>
+            Initialize this for Unit Testing
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.DoDiagnostic(System.Int32,System.Boolean)">
+            <summary>
+            Set debug logging
+            </summary>
+            <param name="cmd">Settings.DiagnosticCmd command to change</param>
+            <param name="enable">true to enable cmd</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.WriteToTrace(System.String,System.String,System.Exception,System.Boolean)">
+            <summary>
+            Writes a message to the Trace window.
+            Message will be in the form "debugViewPrefix Date functionName: msgText\nExceptionText\nCall Stack"
+            </summary>
+            <param name="msgText">the Message</param>
+            <param name="functionName">a function name to prepend to the message</param>
+            <param name="ex">an optional Exception</param>
+            <param name="includeStackTrace">true to include the Call Stack in the Trace window</param>
+            <returns>the string written</returns>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.WriteToTrace(System.String)">
+            <summary>
+            Writes a message to the Trace window.
+            Message will be in the form "debugViewPrefix Date msgText"
+            </summary>
+            <param name="msgText"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.WriteToTrace(System.String,System.String)">
+            <summary>
+            Writes a message to the Trace window.
+            Message will be in the form "debugViewPrefix Date functionName: msgText"
+            </summary>
+            <param name="msgText">the text to write</param>
+            <param name="functionName">name of the function where the trace was made</param>
+            <returns>the string written to the trace window</returns>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.TraceWriteLine(System.String)">
+            <summary>
+            Write msg to the Trace window.
+            </summary>
+            <param name="msg">message to write</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogMessage(System.String)">
+            <summary>
+            This will log a message to the Console window and Trace window
+            </summary>
+            <param name="msgText">message to Log</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogMessage(System.String,System.String)">
+            <summary>
+            This will log a message to the Console window and Trace window
+            in the form "functionName: msgText"
+            </summary>
+            <param name="msgText">message to log</param>
+            <param name="functionName">will log functionName: msgText</param>
+            <returns></returns>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogEvent(System.String,System.String,System.Diagnostics.EventLogEntryType,System.Exception)">
+            <summary>
+            Logs "functionName: msgText\nExceptionText\nCallStack" to Console window, Trace and the Windows Event Log
+            Trace and Event log will include the stack trace
+            </summary>
+            <param name="msgText">Text to log</param>
+            <param name="functionName">functionName where the Exception occurred</param>
+            <param name="eventType">type of logging to perform</param>
+            <param name="ex">Exception to log</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogEvent(System.String,System.String,System.Diagnostics.EventLogEntryType,System.Exception,System.Boolean)">
+            <summary>
+            Logs "functionName: msgText\nExceptionText\nCallStack" to Console window, Trace and the Windows Event Log
+            set includeStackTrace to include the stack trace in the Trace and Event log
+            </summary>
+            <param name="msgText">Text to log</param>
+            <param name="functionName">functionName where the Exception occurred</param>
+            <param name="eventType">type of logging to perform</param>
+            <param name="ex">Exception to log</param>
+            <param name="includeStackTrace">true to include the Stack Trace in the message</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogEvent(System.String,System.String,System.Diagnostics.EventLogEntryType)">
+            <summary>
+            Logs "functionName: msgText" to Console window, Trace and the Windows Event Log
+            </summary>
+            <param name="msgText">Text to log</param>
+            <param name="functionName">functionName where the Exception occurred</param>
+            <param name="eventType">type of logging to perform</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogEvent(System.String,System.Diagnostics.EventLogEntryType)">
+            <summary>
+            Logs msgText to Console window, Trace and the Windows Event Log as Diagnostic Event
+            </summary>
+            <param name="msgText">Text to log</param>
+            <param name="eventType">type of logging to perform</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogEventMsg(System.String,System.Diagnostics.EventLogEntryType)">
+            <summary>
+            Logs msgText to Console window, Trace and the Windows Event Log
+            </summary>
+            <param name="msgText">Text to log</param>
+            <param name="eventType">type of logging to perform</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogException(System.String,System.String)">
+            <summary>
+            Logs "functionName: Exception - msgText" to Console window, Trace and logs an Error to the Windows Event Log
+            </summary>
+            <param name="msgText">Text to log</param>
+            <param name="functionName">functionName where the Exception occurred</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogException(System.String,System.String,System.Exception)">
+            <summary>
+            Logs "functionName: Exception - msgText\nExceptionText" to Console window, Trace and logs an Error to the Windows Event Log
+            Does not include the stack trace
+            </summary>
+            <param name="msgText">Text to log</param>
+            <param name="functionName">functionName where the Exception occurred</param>
+            <param name="ex">Exception to log</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.LogException(System.String,System.String,System.Exception,System.Boolean,System.Boolean)">
+            <summary>
+            Logs "functionName: Exception - msgText\nExceptionText\nCallStack" to Console window, Trace and logs an Error to the Windows Event Log
+            set includeStackTrace to include the stack trace
+            </summary>
+            <param name="msg"></param>
+            <param name="functionName"></param>
+            <param name="ex"></param>
+            <param name="includeStackTrace"></param>
+            <param name="dontRethrow">false to rethrow the error after logging.  true to just log it and not rethrow</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandler(System.String,System.String,System.Exception,System.Boolean)">
+            <summary>
+            If the app's config file has a setting for IsAService and it is a "1"
+            just log a Windows Event. Otherwise, pop up a message box and log a Windows Event.
+            Tacks on up to three levels of inner exceptions to the message
+            </summary>
+            <param name="errorMsg">Text to display</param>
+            <param name="additionalDetail">additional text displayed in the lower window</param>
+            <param name="ex">Exception to log</param>
+            <param name="dontRethrow">do not rethrow the error</param>
+            <History>
+            12/23/2008	ABruner						Modified to show MessageBox and log a Windows
+            event for non-service apps.
+            3/8/2018   JGLitton          added dontRethrow - unit tests were getting error in the Find task callback which caused problems
+            </History>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandler(System.String,System.Exception,System.Boolean)">
+            <summary>
+            If the app's config file has a setting for IsAService and it is a "1"
+            just log a Windows Event. Otherwise, pop up a message box and log a Windows Event.
+            Tacks on up to three levels of inner exceptions to the message
+            </summary>
+            <param name="errorMsg">Text to display</param>
+            <param name="ex">Exception to log</param>
+            <param name="dontRethrow">do not rethrow the error</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandler(System.String,System.String)">
+            <summary>
+            If the app's config file has a setting for IsAService and it is a "1"
+            just log a Windows Event. Otherwise, pop up a message box and log a Windows Event.
+            </summary>
+            <param name="errorMsg">Text to display</param>
+            <param name="additionalDetail">additional text displayed in the lower window</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.ErrorHandler(System.String)">
+            <summary>
+            If the app's config file has a setting for IsAService and it is a "1"
+            just log a Windows Event. Otherwise, pop up a message box and log a Windows Event.
+            </summary>
+            <param name="errorMsg">Text to display</param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.GetExceptionText(System.String,System.String,System.Exception,System.Boolean)">
+            <summary>
+            Gets a string with inner exceptions down to 3 levels
+            </summary>
+            <param name="statement">message added to text</param>
+            <param name="additionalDetail">additional Detail added to text</param>
+            <param name="ex"></param>
+            <param name="includeStackTrace">true to include the StackTrace in the message</param>
+            <returns>a string with all the info formatted</returns>
+            <History>
+            12/23/2008	ABruner					Modified to include call stack info
+            </History>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.GetExceptionText(System.String,System.Exception,System.Boolean)">
+            <summary>
+            Get a string with inner exceptions down to 3 levels preceded by a a statement.
+            Optionally appends a stack trace to the returned string
+            </summary>&lt;
+            <param name="ex">exception for which to get text</param>
+            <param name="statement">a statement to prepend to the exception text</param>
+            <param name="includeStackTrace">true to append the stack trace to the text</param>
+            <returns></returns>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.GetExceptionText(System.Exception)">
+            <summary>
+            Just get a string with inner exceptions down to 3 levels
+            </summary>
+            <param name="ex"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.GetStackTrace(System.Exception)">
+            <summary>
+            Get a string with the stack trace
+            </summary>
+            <param name="ex"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.WriteToConsole(System.String)">
+            <summary>
+            Write msg to the console window if DEBUG is defined
+            </summary>
+            <param name="msg"></param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.WriteToConsole(System.String,System.String)">
+            <summary>
+            Write "functionName: msg" to the console window if DEBUG is defined
+            </summary>
+            <param name="msg"></param>
+            <param name="functionName"></param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.MessageLogger.WriteToConsole(System.String,System.String,System.Exception)">
+            <summary>
+            Write "functionName: msg\nExceptionText" to the console window if DEBUG is defined
+            </summary>
+            <param name="msg">Message to display</param>
+            <param name="functionName"></param>
+            <param name="ex"></param>
+        </member>
+        <member name="T:Matrix.Utilities.Diagnostics.Timing">
+            <summary>
+            Static class used to provide debug timers - compiled only in DEBUG versions
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.Timing.StartTimer(System.Diagnostics.Stopwatch)">
+            <summary>
+            Starts a specified timer
+            </summary>
+            <param name="stopWatch"></param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.Timing.StartTimer(System.Diagnostics.Stopwatch,System.Boolean)">
+            <summary>
+            Stops a specified timer.  Optionally resets the timer prior to the start.
+            </summary>
+            <param name="stopWatch"></param>
+            <param name="reset"></param>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.Timing.StopTimer(System.Diagnostics.Stopwatch,System.String)">
+            <summary>
+            Stops a specified timer and prints out a time elapsed message
+            </summary>
+            <param name="stopWatch"></param>
+            <param name="action"></param>
+        </member>
+        <member name="T:Matrix.Utilities.Diagnostics.WindowsEventLogger">
+            <summary>
+            Static class for logging a Windows Events
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.WindowsEventLogger.InitSource(System.String)">
+            <summary>
+            Call to initialize the logger with the passed in Application Name
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.WindowsEventLogger.InitSource">
+            <summary>
+            Called automatically when InitSource(appName) is not called.
+            The application is assumed to be located in the "Application Name" 
+             setting of the Configuration file 
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.WindowsEventLogger.SetAppName(System.String)">
+            <summary>
+            Registers the Application Name in the Windows Application Event Log.
+            Lock is used to ensure that registration calls are not interleaved. 
+            </summary>
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.WindowsEventLogger.WriteToEventLog(System.String,System.Diagnostics.EventLogEntryType)">
+            <summary>
+            Writes eventText to the Windows Event Log using MSG_DIAGNOSTIC_INFO formatting
+            </summary>
+            <param name="eventText"></param>
+            <param name="eventType"></param>
+            01/04/2012	ABruner					Errors occurring writing to Windows Event log (Invalid eventid value)
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.WindowsEventLogger.WriteMsgToEventLog(System.String,System.Diagnostics.EventLogEntryType)">
+            <summary>
+            Writes eventText to the Windows Event Log
+            </summary>
+            <param name="eventText"></param>
+            <param name="eventType"></param>
+            01/04/2013	ABruner					Created
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.WindowsEventLogger.SQLSeverifyToEventType(System.Int32)">
+            <summary>
+            Using raiserror in a StoredProc with a severity of 0-10 causes an InfoMessage event to get fired on the SQL connection.
+            Severity 12-19 raises an exception and is caught by a try/catch handler.
+            </summary>
+            <param name="severity"></param>
+            01/11/2013	ABruner					Created
+        </member>
+        <member name="M:Matrix.Utilities.Diagnostics.WindowsEventLogger.LogSQLInfoMessage(System.Int32)">
+            <summary>
+            Using raiserror with a state > 0 indicates the message should get logged to the Windows Event Log
+            </summary>
+            <param name="state"></param>
+            01/11/2013	ABruner					Created
+        </member>
+    </members>
+</doc>

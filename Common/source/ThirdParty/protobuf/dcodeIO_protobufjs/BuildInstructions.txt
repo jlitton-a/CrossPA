@@ -1,0 +1,7 @@
+#unzip protobuf.js-6.0.0
+#in command window
+cd protobuf.js-6.0.0
+npm install -g browserify
+npm install
+browserify index.js -o protobuf.js
+#copy the protobuf.js just created into the website

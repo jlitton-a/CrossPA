@@ -1,0 +1,4 @@
+ADD_SUBDIRECTORY("${APP_TEST_HOME}/CommonMessages_Test")
+ADD_SUBDIRECTORY("${APP_TEST_HOME}/CommunicationUtils_Test")
+ADD_SUBDIRECTORY("${APP_TEST_HOME}/MessageThreads_Test")
+ADD_SUBDIRECTORY("${APP_TEST_HOME}/TestApp")

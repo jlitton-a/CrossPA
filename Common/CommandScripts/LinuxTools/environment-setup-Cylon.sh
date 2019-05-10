@@ -1,0 +1,25 @@
+#!/bin/sh
+# Run this script from within SetCrossCompileEnvCylon.sh.
+export CC="${CROSS_COMPILER_HOME}/${TARGET_PREFIX}gcc -march=armv7-a -mthumb-interwork -mfpu=neon -mtune=cortex-a9 --sysroot=--sysroot=${CYLON_SYSROOTS}"
+export CXX="${CROSS_COMPILER_HOME}/${TARGET_PREFIX}g++ -march=armv7-a -mthumb-interwork -mfpu=neon -mtune=cortex-a9 --sysroot=--sysroot=${CYLON_SYSROOTS}"
+export CPP="${CROSS_COMPILER_HOME}/${TARGET_PREFIX}gcc -E -march=armv7-a -mthumb-interwork -mfpu=neon -mtune=cortex-a9 --sysroot=--sysroot=${CYLON_SYSROOTS}"
+
+export AS="${TARGET_PREFIX}as "
+export LD="${TARGET_PREFIX}ld"
+export GDB="${TARGET_PREFIX}gdb"
+export STRIP="${TARGET_PREFIX}strip"
+export RANLIB="${TARGET_PREFIX}ranlib"
+export OBJCOPY="${TARGET_PREFIX}objcopy"
+export OBJDUMP="${TARGET_PREFIX}objdump"
+export AR="${TARGET_PREFIX}ar"
+export NM="${TARGET_PREFIX}nm"
+export M4="m4"
+export CONFIGURE_FLAGS="--target=${TARGET_PREFIX} --host=${TARGET_PREFIX} --build=${CROSS_COMPILE_BUILD} --with-libtool-sysroot=${CYLON_SYSROOTS}"
+# -O2 optimize code, -pipe speeds compilation process
+export CFLAGS=" -O2 -pipe -g -feliminate-unused-debug-types"
+export CXXFLAGS=" -O2 -pipe -g -feliminate-unused-debug-types"
+export LDFLAGS="-Wl,-O1 -Wl,--hash-style=gnu"
+export CPPFLAGS=""
+#export OECORE_DISTRO_VERSION="1.6.0"
+#export OECORE_SDK_VERSION="1.6.0"
+export ARCH="arm"

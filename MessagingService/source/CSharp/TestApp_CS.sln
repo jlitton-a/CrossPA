@@ -1,0 +1,97 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2043
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingService.CommunicationUtils", "Product\CommunicationUtils\MessagingService.CommunicationUtils.csproj", "{4614D455-7D42-4E48-9FA5-64D19AF8298B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingService.TestApp", "Tests\TestApp\MessagingService.TestApp.csproj", "{69EAF4FE-93C1-4B54-9F5F-3308288C7125}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingService.CommonMessages", "Product\CommonMessages\MessagingService.CommonMessages.csproj", "{6B57B768-F148-43D5-9D3B-1B1E69750442}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingService.CommunicationUtils.Test", "Tests\CommunicationUtils.Test\MessagingService.CommunicationUtils.Test.csproj", "{525A42CB-792E-4A55-A09E-F9F464E15BA9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Debug|x64.Build.0 = Debug|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Debug|x86.Build.0 = Debug|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Release|x64.ActiveCfg = Release|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Release|x64.Build.0 = Release|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Release|x86.ActiveCfg = Release|Any CPU
+		{4614D455-7D42-4E48-9FA5-64D19AF8298B}.Release|x86.Build.0 = Release|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Debug|x64.Build.0 = Debug|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Debug|x86.Build.0 = Debug|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Release|x64.ActiveCfg = Release|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Release|x64.Build.0 = Release|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Release|x86.ActiveCfg = Release|Any CPU
+		{69EAF4FE-93C1-4B54-9F5F-3308288C7125}.Release|x86.Build.0 = Release|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Debug|x64.Build.0 = Debug|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Debug|x86.Build.0 = Debug|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Release|x64.ActiveCfg = Release|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Release|x64.Build.0 = Release|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Release|x86.ActiveCfg = Release|Any CPU
+		{6B57B768-F148-43D5-9D3B-1B1E69750442}.Release|x86.Build.0 = Release|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Debug|x64.Build.0 = Debug|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Debug|x86.Build.0 = Debug|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Release|x64.ActiveCfg = Release|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Release|x64.Build.0 = Release|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Release|x86.ActiveCfg = Release|Any CPU
+		{525A42CB-792E-4A55-A09E-F9F464E15BA9}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AD1068F8-8EA5-4A1A-8FF1-9F9EEF9ED27F}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 5
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = http://tfs2013:8080/tfs/defaultcollection
+		SccProjectUniqueName0 = Product\\CommunicationUtils\\MessagingService.CommunicationUtils.csproj
+		SccProjectName0 = Product/CommunicationUtils
+		SccLocalPath0 = Product\\CommunicationUtils
+		SccProjectUniqueName1 = Tests\\TestApp\\MessagingService.TestApp.csproj
+		SccProjectName1 = Tests/TestApp
+		SccLocalPath1 = Tests\\TestApp
+		SccProjectUniqueName2 = Tests\\CommunicationUtils.Test\\MessagingService.CommunicationUtils.Test.csproj
+		SccProjectName2 = Tests/CommunicationUtils.Test
+		SccLocalPath2 = Tests\\CommunicationUtils.Test
+		SccProjectUniqueName3 = Product\\CommonMessages\\MessagingService.CommonMessages.csproj
+		SccProjectName3 = Product/CommonMessages
+		SccLocalPath3 = Product\\CommonMessages
+		SccLocalPath4 = .
+	EndGlobalSection
+EndGlobal

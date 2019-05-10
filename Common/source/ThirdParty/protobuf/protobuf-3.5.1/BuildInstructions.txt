@@ -1,0 +1,118 @@
+====================================
+#WINDOWS - 3.5.1 for Shared Libraries
+====================================
+ 1. Use 7Zip to unpack and unzip tar file protobuf-cpp-3.5.1.tar.gz
+ 2. Open command prompt
+ 3.	cd path\to\protobuf-3.5.1
+ 4.	mkdir winbuild
+ 5.	cd winbuild
+ 6.	cmake ..\cmake -Dprotobuf_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=install
+
+ 7. do not close the command prompt but open the just created winbuild\protobuf.sln in visual studio 2015
+ 8. open properties on both libprotobuf and libprotobuf-lite and make sure C/C++ - Code Generation - Runtime Library #   is set to /MDd for Debug and /MD for Release
+ 9. set configuration to Debug
+10. build all
+11. set configuration to Release
+12. build all
+13. From the same command prompt from above, copy files to third party prebuilt library directories:
+	copy Debug\libprotobufd.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Debug\libprotobuf.lib
+	copy Debug\libprotobufd.pdb %COMMON_THIRDPARTY_HOME%\lib\WinHost\Debug\libprotobuf.pdb
+	copy Debug\libprotobufd.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Debug\libprotobuf.dll
+	copy Debug\libprotobuf-lited.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Debug\libprotobuf-lite.lib
+	copy Debug\libprotobuf-lited.pdb %COMMON_THIRDPARTY_HOME%\lib\WinHost\Debug\libprotobuf-lite.pdb
+	copy Debug\libprotobuf-lited.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Debug\libprotobuf-lite.dll
+
+	copy Release\libprotobufd.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Release\libprotobuf.lib
+	copy Release\libprotobufd.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Release\libprotobuf.dll
+	copy Release\libprotobuf-lited.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Release\libprotobuf-lite.lib
+	copy Release\libprotobuf-lited.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Release\libprotobuf-lite.dll
+	copy Release\libprotoc.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Release\libprotoc.lib
+	copy Release\libprotoc.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Release\libprotoc.dll
+	copy Release\protoc.exe %COMMON_THIRDPARTY_HOME%\lib\WinHostRelease\protoc.exe
+
+14. copy winbuild\install\google to %COMMON_THIRDPARTY_HOME%\protobuf\
+    NOTE:  if there is no install directory under winbuild, you may need to rebuild the INSTALL project
+
+====================================
+#LINUX 3.5.1
+====================================
+Note: Must make for Linux VM first prior to cross-compiling!!!
+
+ 1. cd $WORKSPACE (Common libraries main directory)
+ 2. source CommandScripts/LinuxTools/SetLinuxEnv.sh
+ 3. cd ~
+ 6. tar -xzvf ${COMMON_THIRDPARTY_HOME}/protobuf/protobuf-3.5.1/protobuf-cpp-3.5.1.tar.gz
+ 7. cd protobuf-3.5.1
+ 8. sudo ./configure
+ 9. make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+ 10. sudo make install AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+
+11. Save the result in our Common third party library area.
+    cp src/.libs/libprotobuf*.so.15.0.1 ${COMMON_THIRDPARTY_LIB_PATH}
+
+12. Update the shared library cache and verify protoc
+    sudo ldconfig
+    ldd /usr/local/bin/protoc
+
+13. Check symbolic links in ${COMMON_THIRDPARTY_LIB_PATH_RELEASE} directory. If they are wrong:
+    Delete incorrect links. Run this script to recreate missing links
+    source ${COMMON_SCRIPT_HOME}/SetLinuxEnv.sh  
+
+=======================
+LINUX-CYLON 3.5.1
+====================================
+Note: Must make for Linux VM first prior to cross-compiling!!!
+
+ 1. Build for Linux VM first
+ 2. sudo make clean AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+ 3. source ${COMMON_SCRIPT_HOME}/SetCylonEnv.sh
+ 4. cd protobuf-3.5.1 (if needed)
+
+ 5. find the path to the protoc created in the Linux VM build - probably /usr/local/bin/protoc
+    find the path to the libprotoc.so.15 - probably /usr/local/lib
+    sudo ./configure --build=${CROSS_COMPILE_BUILD} --host=${CROSS_COMPILE_HOST} --prefix=${CROSS_COMPILE_FULL_HOST}/usr --with-protoc=/usr/local/bin/protoc 
+ 6. cd src
+ 
+ 7. Build
+    Must pass extra stuff to make to give sudo access to your environment
+    sudo LD_LIBRARY_PATH=/usr/local/lib env "PATH=${PATH}" make AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+    
+ 8. sudo env "PATH=${PATH}" make install  AUTOCONF=: AUTOHEADER=: AUTOMAKE=: ACLOCAL=:
+
+ 9. Save the result in our Common third party library area.
+    cp .libs/libprotobuf*.so.15.0.1 ${COMMON_THIRDPARTY_LIB_PATH_RELEASE}
+
+10. Check symbolic links in ${COMMON_THIRDPARTY_LIB_PATH} directory. If they are wrong:
+    Delete incorrect links. Run this script to recreate missing links
+    source ${COMMON_SCRIPT_HOME}/SetCylonEnv.sh  
+	
+====================================
+#WINDOWS 3.5.1 creating a static protobuf library
+====================================
+# unpack and unzip tar file
+# open command prompt
+	cd path\to\protobuf-3.5.1
+	mkdir winbuild
+	cd winbuild
+	cmake ..\cmake
+
+# do not close the command prompt but open the just created winbuild\protobuf.sln in visual studio 2015
+# open properties on both libprotobuf and libprotobuf-lite and change C/C++ - Code Generation - Runtime Library #   to /MDd for Debug and /MD for Release
+# set configuration to Debug
+# build all
+# set configuration to Release
+# build all
+# from the same command prompt from above:
+	copy Debug\libprotobufd.lib path\to\%COMMON_THIRDPARTY_LIB_PATH%\WinHost\Debug\libprotobuf.lib
+	copy Debug\libprotobuf-lited.lib path\to\%COMMON_THIRDPARTY_LIB_PATH%\WinHost\Debug\libprotobuf-lite.lib
+
+	copy Release\libprotobufd.lib path\to\%COMMON_THIRDPARTY_LIB_PATH%\WinHost\Release\libprotobuf.lib
+	copy Release\libprotobuf-lited.lib path\to\%COMMON_THIRDPARTY_LIB_PATH%\WinHost\Release\libprotobuf-lite.lib
+	extract_includes.bat
+# copy winbuild\include\google to path\to\%COMMON_THIRDPARTY_LIB_PATH%\protobuf\
+
+#change the %COMMON_WORKSPACE%\source\CMakeInclude.txt (or individual CMakeLists.txt files) to remove -DPROTOBUF_USE_DLLS from ADD_DEFINITION
+#remove dllexport_decl=MESSAGEDEFS_API from the protoc line of the batch/shell scripts
+#also remove from the batch/shell scripts the steps to add stdafx.h to the MessageDefs.pb.h file
+
+

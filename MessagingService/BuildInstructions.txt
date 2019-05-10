@@ -1,0 +1,77 @@
+Third-party libraries used by the app are pre-compiled and checked in to the lib subdirectory
+in Common/source/ThirdParty under the appropriate platform.  In general, the header
+files for Third part libraries will also be under the Common/source/ThirdParty directory.
+
+However, boost is so large and most of it is header only so the headers for boost are not included.
+In order to use the boost headers, you will need to compile boost onto your own system.  
+Follow tbe BuildInstrctions under Common/source/ThirdParty/boost prior to the first time running through
+this build process.
+
+Also, you will need to install CMake on your system prior to the first time running through 
+this build process.
+
+
+-----------------
+To make in windows:
+-----------------
+1.  modify SetWorkspace.bat to set WORKSPACE to the path to this directory and to set CMAKEHOME to the path to CMake.exe
+	(Or alternatively, add the CMake directory to the PATH environment variable)
+2.  open a command prompt and navigate to this directory
+3.  At the command prompt, perform the following:
+		SetWorkspace.bat
+		CommandScripts\WinTools\Build_All.bat 
+4.  The previous step will create the Visual Studio projects and solution: %WORKSPACE%\build_WinHost\Common.sln
+5.  Open Common.sln in Visual Studio and build.  The output will be in %WORKSPACE%\OutputDebug\WinHost or %WORKSPACE%\OutputRelease\WinHost
+OPTIONAL: Build_All.bat completely rebuilds all projects including test projects.  You may run CommandScripts\WinTools\Build_Min.bat to do a minimal build
+
+-----------------
+To make in Ubuntu Linux:
+-----------------
+1. Open a Terminal and navigate to this directory
+2. At the Terminal prompt, perform the following:
+		export WORKSPACE=path/to/this/directory
+		export COMMON_WORKSPACE=path/to/Common/directory
+		./CommandScripts/LinuxTools/BuildLinux.sh
+3.  The previous step will compile the application.  The output will be in $WORKSPACE/OutputRelease/LinuxHost
+OPTIONAL:  You can define the following environment variables to modify the build
+		export NO_CLEAN_FIRST=0		(to completely rebuild all projects)
+		export BYPASS_TESTS=1		(to skip creating the unit test projects)
+		
+-----------------
+To make for Cylon:
+-----------------
+1. $WORKSPACE/LinuxTools/SetEnvCrossCompileCylon.sh sets up variables for cross compiling.  
+It is called by BuildCylon.sh.  The paths are set for using the compiler installed by apt-get install gcc-arm-linux-gnueabi.
+You may need to change the environment variables in this script to match your cross compiler toolchain settings.
+2. Follow the Ubuntu Linux instructions changing Linux to Cylon in all steps
+
+-----------------
+When making changes to the Message Service proto file:
+-----------------
+1.	Checkout source\_ProtoFiles\CommonMessages.proto
+2.	Checkout source\Product\CommonMessages\CommonMessages.pb.cc
+3.	Checkout source\Product\CommonMessages\CommonMessages.pb.h
+4.	Checkout source\CSharp\Product\CommonMessages\CommonMessages.cs
+5.	Edit CommonMessages.proto (be sure to end fields with semi-colon ; not comma , )
+6.	Open command prompt
+7.	Run SetWorkspace.bat
+8.	Run CommandScripts\WinTools\CompileProtoMessages.bat
+9.	Open build_WinHost\MsgService.sln, switch to release and rebuild.
+10.	Open source\CSharp\TestApp_CS.sln, switch to release and rebuild.
+
+-----------------
+Third Party Libraries
+-----------------
+Third party libraries are in WORKSPACE\source\ThirdParty.
+The prebuild library files will be in WORKSPACE\source\ThirdParty\lib\XyzHost  (where Xyz is the type of host: Win, Linux, Cylon)
+For the third party libraries, the include files, tar or zip of the source code, and instructions for building them will be under their respective directories.
+
+-----------------
+CMake files
+-----------------
+The top level CMakeList.txt in WORKSPACE starts the CMake process.  It includes COMMON_WORKSPACE/source/CMakeList.txt and WORKSPACE/source/CMakeList.txt.
+The WORKSPACE/source/CMakeLists.txt includes CMakeInclude.txt which is used to find all the third party libraries needed by all the projects to be built.
+The WORKSPACE/source/CMakeLists.txt also includes each of the CMakeLists.txt for each project under the Product and Tests directories.
+
+NOTE:  Currently projects are being built statically because the Cylon board does not have standard c++ libraries installed.  
+We may want to change this in future.  

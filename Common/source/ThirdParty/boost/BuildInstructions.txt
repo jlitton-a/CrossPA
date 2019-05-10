@@ -1,0 +1,55 @@
+Linux-Cylon
+===========
+ 1. cd ${WORKSPACE}
+ 2. . CommandScripts/LinuxTools/SetCylonEnv.sh
+ 3. cd ~
+ 4. mkdir boost
+ 5. cd boost
+ 6. tar -xvjf ${COMMON_THIRDPARTY_HOME}/boost/boost_1_68_0.tar.bz2
+ 7. cd boost_1_68_0
+ 8. sudo rsync -rlptDWv boost/ ${CROSS_COMPILE_FULL_HOST}/usr/include/boost/
+ 9. . ${COMMON_SCRIPT_HOME}/SetJenkinsEnvLinux.sh
+10. ./bootstrap.sh --with-libraries=date_time,regex,system,log --prefix=/usr
+11. Edit project-config.jam.  Replace "using gcc ;" with
+      "using gcc : arm : arm-angstrom-linux-gnueabi-g++ ;"
+12. . ${COMMON_SCRIPT_HOME}/SetCylonEnv.sh
+13. ./b2 variant=release link=shared threading=multi
+14. cp stage/lib/libboost*.so.1.68.0 ${COMMON_THIRDPARTY_LIB_PATH_RELEASE}
+15. Add/update the new library files in to the TFS.
+16. The local ~/boost directory can now be removed.
+
+Linux-Ubuntu
+============
+ 1. cd ${WORKSPACE}
+ 2. . CommandScripts/LinuxTools/SetLinuxEnv.sh
+ 3. cd ~
+ 4. mkdir boost
+ 5. cd boost
+ 6. tar -xvjf ${COMMON_THIRDPARTY_HOME}/boost/boost_1_68_0.tar.bz2
+ 7. sudo mkdir /usr/local/include/boost
+ 8. cd boost_1_68_0
+ 9. sudo rsync -rlptDWv boost/ /usr/local/include/boost/
+10. ./bootstrap.sh --with-libraries=date_time,regex,system,log
+11. ./b2 variant=release link=shared threading=multi
+12. cp stage/lib/libboost*.so.1.68.0 ${COMMON_THIRDPARTY_LIB_PATH_RELEASE}
+13. Add/update the new library files in to the TFS.
+14. The local ~/boost directory can now be removed.
+
+Windows
+=======
+1. Run the 7-Zip archiver as administrator.
+2. Unzip the latest 7-Zip Boost archive in CommonSDK\source\ThirdParty\Boost to
+   C:\Program Files\boost (e.g. resulting in the creation of the    C:\Program Files\boost\boost_1_68_0 directory.)
+3. Run cmd.exe as an administrator.
+4. cd "\Program Files\boost\boost_1_68_0"
+5. bootstrap
+6. b2 date_time system log log_setup variant=debug variant=release debug-symbols=on
+7. The boost system library files are now in:
+   C:\Program Files\boost\boost_1_68_0\bin.v2\libs
+   
+!! The following steps are only needed when updating the project to a new boost version !!
+   
+8. Run CopyBinaries.bat to Copy the dll, lib, and pdb files from the appropriate directories above to:
+   CommonSDK\source\ThirdParty\lib\WinHost\Debug
+   CommonSDK\source\ThirdParty\lib\WinHost\Release
+9. Add and commit the new files in %COMMON_THIRDPARTY_HOME% to the Common ThirdParty repository.
