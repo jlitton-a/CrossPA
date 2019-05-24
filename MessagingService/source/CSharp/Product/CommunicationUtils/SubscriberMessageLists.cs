@@ -373,7 +373,6 @@ namespace Matrix.MsgService.CommunicationUtils
                   (msgKey, existing) => 
                         {
                            existing.AddOrUpdateMessage(msg);
-                           added = true;
                            return existing;
                         });
          }

@@ -403,8 +403,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          msgList.Add(msg);
          subMsgListMock.GetMessages(Arg.Any<uint>(), Arg.Any<DateTime?>()).Returns(msgList);
 
-         var logon = new CommonMessages.Logon();
-         var underTest = CreateTestItem(logon, 0, 0, 0, 1000);
+         var underTest = CreateTestItem(null, 0, 0, 0, 1000);
          underTest.Connect();
 
          //Test
@@ -438,13 +437,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Header msgSent = null;
          _connectionHandlerMock.SendMessage(Arg.Do<Header>(x => msgSent = x), out ex);
 
-         var logon = new CommonMessages.Logon();
-         var underTest = CreateTestItem(logon, 0, 0, 0, 1000);
+         var underTest = CreateTestItem(null, 0, 0, 0, 1000);
          underTest.Connect();
-         msg = new Header();
-         msg.MsgKey = 1;
-         msg.MsgTypeID = MsgType.Ack;
-         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, null));
 
          //Test
          _resendMsgTimerMock.Tick += Raise.EventWith(new Utilities.ThreadingTimer.TickEventArgs(null));
