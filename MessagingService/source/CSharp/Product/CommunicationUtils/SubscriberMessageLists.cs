@@ -173,7 +173,7 @@ namespace Matrix.MsgService.CommunicationUtils
          /// Adds a message to the Sent list
          /// </summary>
          /// <param name="msg">message to add</param>
-         /// <returns>true if message was added or updated</returns>
+         /// <returns>true if message was added, false if it was updated</returns>
          public bool AddOrUpdateMessage(Header msg)
          {
             MsgInfo foundMsg;
@@ -181,10 +181,13 @@ namespace Matrix.MsgService.CommunicationUtils
             {
                foundMsg.Msg = msg;
                foundMsg.TimeSent = DateTime.Now;
+               return false;
             }
             else
+            {
                _msgList.TryAdd(msg.MsgKey, new MsgInfo(msg, DateTime.Now));
-            return true;
+               return true;
+            }
          }
          /// <summary>
          /// Remove messages with msgKey in msgKeys list
@@ -366,13 +369,12 @@ namespace Matrix.MsgService.CommunicationUtils
                   (msgKey) =>
                         {
                            var msgList = new SubscriberMessages(key);
-                           msgList.AddOrUpdateMessage(msg);
-                           added = true;
+                           added = msgList.AddOrUpdateMessage(msg);
                            return msgList;
                         },
                   (msgKey, existing) => 
                         {
-                           existing.AddOrUpdateMessage(msg);
+                           added = existing.AddOrUpdateMessage(msg);
                            return existing;
                         });
          }

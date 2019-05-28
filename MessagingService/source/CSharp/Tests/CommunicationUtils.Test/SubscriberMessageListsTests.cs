@@ -154,7 +154,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          bool added = underTest.AddSentMessage(msg);
 
          //Checks
-         Assert.IsTrue(added, "Return value");
+         Assert.IsFalse(added, "Return value");
       }
       #endregion
 

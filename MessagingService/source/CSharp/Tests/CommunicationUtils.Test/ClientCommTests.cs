@@ -12,7 +12,6 @@ namespace Matrix.MsgService.CommunicationUtils.Test
    [TestClass]
    public class ClientCommTest
    {
-      List<ClientComm.ConnectionStatusChangedEventArgs> _connectionChangedArgs;
       ISubscriberMessageLists _subscriberMsgListsMock = null;
       MsgService.CommunicationUtils.IConnectionHandler _connectionHandlerMock = null;
       Utilities.IThreadingTimer _serviceTimeoutTimerMock = null;
@@ -21,7 +20,6 @@ namespace Matrix.MsgService.CommunicationUtils.Test
 
       private void CreateMocks()
       {
-         _connectionChangedArgs = new List<ClientComm.ConnectionStatusChangedEventArgs>();
          _subscriberMsgListsMock = Substitute.For<ISubscriberMessageLists>();
          _connectionHandlerMock = Substitute.For<MsgService.CommunicationUtils.IConnectionHandler>();
          _serviceTimeoutTimerMock = Substitute.For<Utilities.IThreadingTimer>();
@@ -38,11 +36,6 @@ namespace Matrix.MsgService.CommunicationUtils.Test
             , _connectionHandlerMock, _subscriberMsgListsMock, _serviceTimeoutTimerMock, _resendMsgTimerMock
             , logonMsg, _msgStoreMock, reconnectRetryTimeMS, heartbeatTimeMS, serverTimeOutTimeMS, resendMessagesTimeMS);
       }
-      private void ConnectionStatusChanged_AddToList(object sender, ClientComm.ConnectionStatusChangedEventArgs e)
-      {
-         _connectionChangedArgs.Add(e);
-      }
-
       [TestMethod]
       public void Constructor()
       {
@@ -116,14 +109,15 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
          var underTest = CreateTestItem(null);
 
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
+         List<ClientComm.ConnectionStatusChangedEventArgs> connectionChangedArgs = new List<ClientComm.ConnectionStatusChangedEventArgs>();
+         underTest.ConnectionStatusChanged += (sender, e)=> connectionChangedArgs.Add(e);
 
          //Test
          underTest.Connect();
 
          //Checks
-         Assert.IsTrue(_connectionChangedArgs[0].ClientSocketState == ClientComm.SocketState.Connecting, "Connecting");
-         Assert.IsTrue(_connectionChangedArgs[1].ClientSocketState == ClientComm.SocketState.Connected, "Connected");
+         Assert.IsTrue(connectionChangedArgs[0].ClientSocketState == ClientComm.SocketState.Connecting, "Connecting");
+         Assert.IsTrue(connectionChangedArgs[1].ClientSocketState == ClientComm.SocketState.Connected, "Connected");
       }
       [TestMethod]
       public void Connect_CallsBeginReading()
@@ -314,8 +308,14 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Exception ex = null;
          _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; } );
 
-         var underTest = CreateTestItem(null, 0, 0, 0, 1000);
+         var logon = new CommonMessages.Logon();
+         var underTest = CreateTestItem(logon, 0, 0, 0, 1000);
          underTest.Connect();
+         Header logonAck = new Header();
+         logonAck.MsgKey = 1;
+         logonAck.MsgTypeID = MsgType.Ack;
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(logonAck, null));
+         _connectionHandlerMock.ClearReceivedCalls();
 
          //Test
          _resendMsgTimerMock.Tick += Raise.EventWith(new Utilities.ThreadingTimer.TickEventArgs(null));
@@ -346,8 +346,14 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          msgList.Add(msg);
          subMsgListMock.GetMessages(Arg.Any<uint>(), Arg.Any<DateTime?>()).Returns(msgList);
 
-         var underTest = CreateTestItem(null, 0, 0, 0, 1000);
+         var logon = new CommonMessages.Logon();
+         var underTest = CreateTestItem(logon, 0, 0, 0, 1000);
          underTest.Connect();
+         Header logonAck = new Header();
+         logonAck.MsgKey = 1;
+         logonAck.MsgTypeID = MsgType.Ack;
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(logonAck, null));
+         _connectionHandlerMock.ClearReceivedCalls();
 
          //Test
          _resendMsgTimerMock.Tick += Raise.EventWith(new Utilities.ThreadingTimer.TickEventArgs(null));
@@ -371,8 +377,14 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          subMsgListMock.IsOnline.Returns(true);
          subMsgListMock.GetMessages(Arg.Any<uint>(), Arg.Any<DateTime?>()).Returns((List<Header>)null);
 
-         var underTest = CreateTestItem(null, 0, 0, 0, 1000);
+         var logon = new CommonMessages.Logon();
+         var underTest = CreateTestItem(logon, 0, 0, 0, 1000);
          underTest.Connect();
+         Header logonAck = new Header();
+         logonAck.MsgKey = 1;
+         logonAck.MsgTypeID = MsgType.Ack;
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(logonAck, null));
+         _connectionHandlerMock.ClearReceivedCalls();
 
          //Test
          _resendMsgTimerMock.Tick += Raise.EventWith(new Utilities.ThreadingTimer.TickEventArgs(null));
@@ -403,8 +415,14 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          msgList.Add(msg);
          subMsgListMock.GetMessages(Arg.Any<uint>(), Arg.Any<DateTime?>()).Returns(msgList);
 
-         var underTest = CreateTestItem(null, 0, 0, 0, 1000);
+         var logon = new CommonMessages.Logon();
+         var underTest = CreateTestItem(logon, 0, 0, 0, 1000);
          underTest.Connect();
+         Header logonAck = new Header();
+         logonAck.MsgKey = 1;
+         logonAck.MsgTypeID = MsgType.Ack;
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(logonAck, null));
+         _connectionHandlerMock.ClearReceivedCalls();
 
          //Test
          _resendMsgTimerMock.Tick += Raise.EventWith(new Utilities.ThreadingTimer.TickEventArgs(null));
@@ -437,8 +455,13 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Header msgSent = null;
          _connectionHandlerMock.SendMessage(Arg.Do<Header>(x => msgSent = x), out ex);
 
-         var underTest = CreateTestItem(null, 0, 0, 0, 1000);
+         var logon = new CommonMessages.Logon();
+         var underTest = CreateTestItem(logon, 0, 0, 0, 1000);
          underTest.Connect();
+         Header logonAck = new Header();
+         logonAck.MsgKey = 1;
+         logonAck.MsgTypeID = MsgType.Ack;
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(logonAck, null));
 
          //Test
          _resendMsgTimerMock.Tick += Raise.EventWith(new Utilities.ThreadingTimer.TickEventArgs(null));
@@ -461,14 +484,15 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          bool success = underTest.Connect();
          Assert.IsTrue(underTest.IsConnected, "Start IsConnected");
 
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
+         List<ClientComm.ConnectionStatusChangedEventArgs> connectionChangedArgs = new List<ClientComm.ConnectionStatusChangedEventArgs>();
+         underTest.ConnectionStatusChanged += (sender, e) => connectionChangedArgs.Add(e);
 
          //Test
          underTest.Disconnect();
 
          //Checks
          Assert.IsFalse(underTest.IsConnected, "IsConnected");
-         Assert.IsNotNull(_connectionChangedArgs.Find(x => x.ClientSocketState == ClientComm.SocketState.Disconnected && x.Reason == ClientComm.DisconnectReason.Manual));
+         Assert.IsNotNull(connectionChangedArgs.Find(x => x.ClientSocketState == ClientComm.SocketState.Disconnected && x.Reason == ClientComm.DisconnectReason.Manual));
       }
       [TestMethod]
       public void Disconnect_ConnectionStatusChanged()
@@ -481,14 +505,15 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null);
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
+         List<ClientComm.ConnectionStatusChangedEventArgs> connectionChangedArgs = new List<ClientComm.ConnectionStatusChangedEventArgs>();
+         underTest.ConnectionStatusChanged += (sender, e) => connectionChangedArgs.Add(e);
 
          //Test
          underTest.Disconnect();
 
          //Checks
-         Assert.IsTrue(_connectionChangedArgs[0].ClientSocketState == ClientComm.SocketState.Disconnecting, "Disconnecting");
-         Assert.IsTrue(_connectionChangedArgs[1].ClientSocketState == ClientComm.SocketState.Disconnected, "Disconnected");
+         Assert.IsTrue(connectionChangedArgs[0].ClientSocketState == ClientComm.SocketState.Disconnecting, "Disconnecting");
+         Assert.IsTrue(connectionChangedArgs[1].ClientSocketState == ClientComm.SocketState.Disconnected, "Disconnected");
       }
       [TestMethod]
       public void Disconnect_DisablesTimers()
@@ -570,17 +595,18 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(logon, 0, 0, 0);
 
          underTest.Connect();
-         Header msg = new Header();
-         msg.MsgKey = 1;
-         msg.MsgTypeID = MsgType.Ack;
-         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, null));
+         Header logonAck = new Header();
+         logonAck.MsgKey = 1;
+         logonAck.MsgTypeID = MsgType.Ack;
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(logonAck, null));
+         _connectionHandlerMock.ClearReceivedCalls();
 
          //Test
          underTest.AddSubscribe(1, 2, 3, true);
 
          //Checks
          //Logon and Subscribe
-         _connectionHandlerMock.Received(2).SendMessage(Arg.Any<Header>(), out ex);
+         _connectionHandlerMock.Received().SendMessage(Arg.Any<Header>(), out ex);
          Assert.IsTrue(rxMsg.MsgTypeID == MsgType.Subscribe);
       }
 
@@ -839,7 +865,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null, 0, 0, 0);
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
+         List<ClientComm.ConnectionStatusChangedEventArgs> connectionChangedArgs = new List<ClientComm.ConnectionStatusChangedEventArgs>();
+         underTest.ConnectionStatusChanged += (sender, e) => connectionChangedArgs.Add(e);
 
          Header msg = new Header();
          msg.MsgKey = 1;
@@ -850,7 +877,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, disconnectEx));
 
          //Checks
-         Assert.IsTrue(_connectionChangedArgs[1].Reason == ClientComm.DisconnectReason.ServerDisconnected);
+         Assert.IsTrue(connectionChangedArgs[1].Reason == ClientComm.DisconnectReason.ServerDisconnected);
       }
       [TestMethod]
       public void MessageReceived_DisconnectError_Disconnects()
@@ -862,7 +889,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null, 0, 0, 0);
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
+         List<ClientComm.ConnectionStatusChangedEventArgs> connectionChangedArgs = new List<ClientComm.ConnectionStatusChangedEventArgs>();
+         underTest.ConnectionStatusChanged += (sender, e) => connectionChangedArgs.Add(e);
 
          Header msg = new Header();
          msg.MsgKey = 1;
@@ -873,7 +901,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, disconnectEx));
 
          //Checks
-         Assert.IsTrue(_connectionChangedArgs[1].Reason == ClientComm.DisconnectReason.Exception);
+         Assert.IsTrue(connectionChangedArgs[1].Reason == ClientComm.DisconnectReason.Exception);
       }
       [TestMethod]
       public void MessageReceived_NotTracking_DoesNotCallAddSubscription()
@@ -885,7 +913,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null, 0, 0, 0, 0);
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
+         List<ClientComm.ConnectionStatusChangedEventArgs> connectionChangedArgs = new List<ClientComm.ConnectionStatusChangedEventArgs>();
+         underTest.ConnectionStatusChanged += (sender, e) => connectionChangedArgs.Add(e);
 
          Header msg = new Header();
          msg.MsgKey = 1;
@@ -912,7 +941,6 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null, 0, 0, 0, 5000);
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
 
          Header msg = new Header();
          msg.MsgKey = 1;
@@ -939,7 +967,6 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null, 0, 0, 0, 5000);
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
 
          Header msg = new Header();
          msg.MsgKey = 1;
@@ -971,7 +998,6 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          underTest.LogonComplete += (obj, args) => { logonCompleteCalled = true; };
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
 
          Header msg = new Header();
          int msgKey = 1;
@@ -1001,7 +1027,6 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          underTest.LogonComplete += (obj, args) => { logonCompleteCalled = true; };
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
 
          Header msg = new Header();
          int msgKey = 1;
@@ -1028,7 +1053,6 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null, 0, 0, 0, 5000);
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
 
          Header msg = new Header();
          int msgKey = 156;
@@ -1056,7 +1080,6 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null, 0, 0, 0, 5000);
 
          underTest.Connect();
-         underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
 
          Header msg = new Header();
          int msgKey = 156;
