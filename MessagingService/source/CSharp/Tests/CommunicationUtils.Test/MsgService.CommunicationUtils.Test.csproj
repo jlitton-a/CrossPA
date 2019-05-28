@@ -49,6 +49,13 @@
     <Reference Include="Google.Protobuf, Version=3.6.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604, processorArchitecture=MSIL">
       <HintPath>..\..\..\..\..\..\BuildSolution\packages\Google.Protobuf.3.6.1\lib\net45\Google.Protobuf.dll</HintPath>
     </Reference>
+    <Reference Include="Matrix.MsgService.CommonMessages_CS">
+      <HintPath>..\..\..\..\..\..\Release\Workstation\MatrixDLLs\Matrix.MsgService.CommonMessages_CS.dll</HintPath>
+    </Reference>
+    <Reference Include="Matrix.MsgService.CommunicationUtils_CS, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Release\Workstation\MatrixDLLs\Matrix.MsgService.CommunicationUtils_CS.dll</HintPath>
+    </Reference>
     <Reference Include="Matrix.Utilities">
       <HintPath>..\..\..\..\..\..\Release\Server\MatrixDLLs\Matrix.Utilities.dll</HintPath>
     </Reference>
@@ -94,16 +101,6 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Product\CommonMessages\MsgService.CommonMessages.csproj">
-      <Project>{6b57b768-f148-43d5-9d3b-1b1e69750442}</Project>
-      <Name>MsgService.CommonMessages</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Product\CommunicationUtils\MsgService.CommunicationUtils.csproj">
-      <Project>{4614d455-7d42-4e48-9fa5-64d19af8298b}</Project>
-      <Name>MsgService.CommunicationUtils</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
