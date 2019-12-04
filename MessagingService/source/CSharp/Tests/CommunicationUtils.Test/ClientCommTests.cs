@@ -699,6 +699,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null, 0, 0, 0);
          underTest.Connect();
          var msgType = MsgType.Custom;
+         
 
          //Test
          underTest.SendCommonMessage(MsgType.Custom, null, 3);
@@ -850,6 +851,193 @@ namespace Matrix.MsgService.CommunicationUtils.Test
 
          //expectations
          _msgStoreMock.ReceivedWithAnyArgs().StoreNewMessage(null, Arg.Any<DateTime>());
+      }
+      #endregion
+
+      #region SendCommonMessageAndWait
+      [TestMethod]
+      public void SendCommonMessageAndWait_NoReceipt_ReturnsFalse()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            //do not receive message
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         Header receivedMsg = new Header();
+
+         //Test
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, 200);
+
+         //Checks
+         Assert.IsNull(receivedMsg);
+      }
+      [TestMethod]
+      public void SendCommonMessageAndWait_NotThisAckNoAckKeys_ReturnsNull()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         Header replyMsg = new Header();
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            //receive a message with wrong ack
+            replyMsg.MsgTypeID = MsgType.Ack;
+            replyMsg.MsgKey = y.MsgKey + 15;
+            var disconnectEx = new Exception();
+            _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(replyMsg, disconnectEx));
+
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         Header receivedMsg = new Header();
+
+         //Test
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+
+         //Checks
+         Assert.IsNull(receivedMsg);
+      }
+      [TestMethod]
+      public void SendCommonMessageAndWait_NotThisAckNotThisAckKeys_ReturnsNull()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         Header replyMsg = new Header();
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            //receive a message with wrong ack
+            replyMsg.MsgTypeID = MsgType.Ack;
+            replyMsg.MsgKey = y.MsgKey + 15;
+            replyMsg.AckKeys.Add(y.MsgKey + 10);
+            var disconnectEx = new Exception();
+            _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(replyMsg, disconnectEx));
+
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         Header receivedMsg = new Header();
+
+         //Test
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+
+         //Checks
+         Assert.IsNull(receivedMsg);
+      }
+      [TestMethod]
+      public void SendCommonMessageAndWait_AckForSentMsg_ReturnsMessage()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         Header replyMsg = new Header();
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            replyMsg.MsgTypeID = MsgType.Ack;
+            replyMsg.MsgKey = y.MsgKey;
+            var disconnectEx = new Exception();
+            _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(replyMsg, disconnectEx));
+
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         Header receivedMsg = new Header();
+
+         //Test
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+
+         //Checks
+         Assert.AreEqual(receivedMsg, replyMsg);
+      }
+      [TestMethod]
+      public void SendCommonMessageAndWait_InAckKeys_ReturnsMessage()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         Header replyMsg = new Header();
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            replyMsg.MsgTypeID = MsgType.Custom;
+            replyMsg.MsgKey = 999;
+            replyMsg.AckKeys.Add(y.MsgKey);
+            var disconnectEx = new Exception();
+            _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(replyMsg, disconnectEx));
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         Header receivedMsg = new Header();
+
+         //Test
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+
+         //Checks
+         Assert.AreEqual(receivedMsg, replyMsg);
+      }
+      [TestMethod]
+      public void SendCommonMessageAndWait_AckForSentMsgAndInAckKeys_ReturnsMessage()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         Header replyMsg = new Header();
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            replyMsg.MsgTypeID = MsgType.Ack;
+            replyMsg.MsgKey = y.MsgKey;
+            replyMsg.AckKeys.Add(y.MsgKey);
+            var disconnectEx = new Exception();
+            _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(replyMsg, disconnectEx));
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         Header receivedMsg = new Header();
+
+         //Test
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+
+         //Checks
+         Assert.AreEqual(receivedMsg, replyMsg);
       }
       #endregion
 

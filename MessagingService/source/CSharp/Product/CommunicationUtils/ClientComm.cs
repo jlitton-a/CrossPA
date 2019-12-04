@@ -66,7 +66,6 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <returns></returns>
       bool AddSubscribe(int clientType, int clientID, int topic, bool subscribe);
       ClientComm.OnlineStatus IsClientOnline(int clientType, int clientID);
-
    }
    /// <summary>
    /// Class for connecting to and communicating with the Messaging Service.  
@@ -228,6 +227,19 @@ namespace Matrix.MsgService.CommunicationUtils
 		volatile bool _stopped;
 		PauseAndExecuter _reconnectRetryTask = null;
 
+      class WaitResponse
+      {
+         public ManualResetEvent AckEvent { get; private set; }
+         public Header MsgReceived { get; set; }
+         public WaitResponse()
+         {
+            AckEvent = new ManualResetEvent(false);
+         }
+      }
+      /// <summary>
+      /// holds reset events and received message for responding to SendCommonMessageAndWait
+      /// </summary>
+      private System.Collections.Concurrent.ConcurrentDictionary<int, WaitResponse> _ackRxEvents = new System.Collections.Concurrent.ConcurrentDictionary<int, WaitResponse>();
       ISubscriberMessageLists _subscriberMsgList = null;
       /// <summary>
       /// The timer used to resend messages that have not yet been acked
@@ -497,6 +509,32 @@ namespace Matrix.MsgService.CommunicationUtils
       protected virtual void OnMessageReceived(Header hdr)
       {
          MessageReceived?.Invoke(this, hdr);
+         WaitResponse waitResponse;
+         //if this is an ack, signal any waiting in SendCommonMessageAndWait
+         if (hdr.MsgTypeID == MsgType.Ack)
+         {
+            if (_ackRxEvents.TryGetValue(hdr.MsgKey, out waitResponse))
+            {
+               waitResponse.MsgReceived = hdr;
+               waitResponse.AckEvent.Set();
+            }
+         }
+         //if there are any acks, signal any waiting in SendCommonMessageAndWait
+         if (hdr.AckKeys != null)
+         {
+            foreach (var key in hdr.AckKeys)
+            {
+               //if this acked key matches the received message and it is an ack msg, we've already set the event
+               if (hdr.MsgTypeID != MsgType.Ack || key != hdr.MsgKey)
+               {
+                  if (_ackRxEvents.TryGetValue(key, out waitResponse))
+                  {
+                     waitResponse.MsgReceived = hdr;
+                     waitResponse.AckEvent.Set();
+                  }
+               }
+            }
+         }
       }
       #endregion
 
@@ -773,10 +811,42 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="destClientID">specific client ID to send it to, 0 for all</param>
       /// <param name="storeMsg">true to store this message for resending on application restart</param>
       /// <param name="isArchived">true to set the isArchived flag</param>
-      /// <returns>The msg key that was used</returns>
+      /// <returns>The msg that was sent</returns>
       public Header SendCommonMessage(MsgType msgType, Google.Protobuf.IMessage msgToSend, int topic = 0, int destClientType = 0, int destClientID = 0, bool storeMsg = false, bool isArchived = false)
       {
          return SendCommonMessageInternal(msgType, msgToSend, _msgKey++, topic, destClientType, destClientID, storeMsg, isArchived);
+      }
+      /// <summary>
+      /// Sends a common message and waits for a response. Returns the actual message sent
+      /// </summary>
+      /// <param name="receivedMsg">The message response received, null if it was not received before maxWaitTimeMS</param>
+      /// <param name="msgType">type of message</param>
+      /// <param name="msgToSend">sub message to send</param>
+      /// <param name="topic">the topic of this message</param>
+      /// <param name="destClientType">specific client type to send it to, 0 to broadcast</param>
+      /// <param name="destClientID">specific client ID to send it to, 0 for all</param>
+      /// <param name="maxWaitTimeMS">Maximum time to wait before timing out</param>
+      /// <returns>The msg that was sent</returns> 
+      public Header SendCommonMessageAndWait(out Header receivedMsg, MsgType msgType, Google.Protobuf.IMessage msgToSend,
+            int topic, int destClientType, int destClientID, 
+            int maxWaitTimeMS = 5000)
+      {
+         receivedMsg = null;
+         var waitResponse = new WaitResponse();
+         int msgKey = _msgKey++;
+         _ackRxEvents.TryAdd(msgKey, waitResponse);
+
+         var hdr = SendCommonMessageInternal(msgType, msgToSend, msgKey, topic, destClientType, destClientID, false, false);
+         if (waitResponse.AckEvent.WaitOne(maxWaitTimeMS))
+         {
+            receivedMsg = waitResponse.MsgReceived;
+         }
+         if (_ackRxEvents.TryRemove(msgKey, out waitResponse))
+         {
+            if (waitResponse != null && waitResponse.AckEvent != null)
+               waitResponse.AckEvent.Dispose();
+         }
+         return hdr;
       }
 
       /// <summary>
