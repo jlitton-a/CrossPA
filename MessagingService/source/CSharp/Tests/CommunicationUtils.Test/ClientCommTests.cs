@@ -856,7 +856,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
 
       #region SendCommonMessageAndWait
       [TestMethod]
-      public void SendCommonMessageAndWait_NoReceipt_ReturnsFalse()
+      public void SendCommonMessageAndWait_NoReceipt_ReturnsNull()
       {
          //Setup
          CreateMocks();

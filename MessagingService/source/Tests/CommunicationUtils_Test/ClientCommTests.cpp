@@ -19,6 +19,7 @@ using namespace testing;
 class ClientCommDerived : public ClientComm
 {
 public:
+   int _lastMsgKey = 0;
    std::vector<CommonMessages::Header> _messagesSent;
    ClientCommDerived(std::shared_ptr<ContextHandler> pContextHandler, std::shared_ptr<ISubscriberMessageLists> pSubscriberMsgListsMock
          , bool trackSentMessages, std::string ipAddress = "localhost", int retryTime = 0)
@@ -31,6 +32,7 @@ public:
    //override to not actually try to send it on the wire
    virtual bool SendMsg(CommonMessages::Header& msg) override
    {
+      _lastMsgKey = msg.msgkey();
       _messagesSent.push_back(msg);
       return true;
    }
@@ -345,4 +347,82 @@ TEST_F(ClientCommTest, HandleMessageReceived_Ack_CallsRemoveSentMessage) {
 
    //Cleanup
    pUnderTest = nullptr;
+}
+
+TEST_F(ClientCommTest, SendCommonMsgAndWait_NoReceipt_ReturnsNull) {
+   //Setup
+   auto pClientComm = CreateClientComm();
+
+   //Test
+    auto pRxMsg = pClientComm->SendCommonMsgAndWait(Matrix::MsgService::CommonMessages::MsgType::LOGON, nullptr, 0, 1, 1, 1000);
+
+   //Expectations
+   EXPECT_EQ(pRxMsg, nullptr);
+
+   //Cleanup
+   pClientComm = nullptr;
+}
+TEST_F(ClientCommTest, SendCommonMsgAndWait_NotThisAckNoAckKeys_ReturnsNull) {
+   //Setup
+   auto pClientComm = CreateClientComm();
+
+   Matrix::Common::CountdownTimer rxCaller;
+   rxCaller.StartTimer(500, [&pClientComm] {
+      auto pMsg = std::unique_ptr<CommonMessages::Header>(new CommonMessages::Header());
+      pMsg->set_msgtypeid(CommonMessages::MsgType::ACK);
+      pMsg->set_origclienttype(1);
+      pMsg->set_msgkey(99);
+      pClientComm->HandleMessageReceived(std::move(pMsg)); }, true);
+
+   //Test
+   auto pRxMsg = pClientComm->SendCommonMsgAndWait(Matrix::MsgService::CommonMessages::MsgType::CUSTOM, nullptr, 0, 1, 1, 1000);
+
+   //Expectations
+   EXPECT_EQ(pRxMsg, nullptr);
+
+   //Cleanup
+   pClientComm = nullptr;
+}
+TEST_F(ClientCommTest, SendCommonMsgAndWait_AckForSentMsg_ReturnsMessage) {
+   //Setup
+   auto pClientComm = CreateClientComm();
+
+   Matrix::Common::CountdownTimer rxCaller;
+   rxCaller.StartTimer(500, [&pClientComm] {
+      auto pMsg = std::unique_ptr<CommonMessages::Header>(new CommonMessages::Header());
+      pMsg->set_msgtypeid(CommonMessages::MsgType::ACK);
+      pMsg->set_origclienttype(1);
+      pMsg->set_msgkey(pClientComm->_lastMsgKey);
+      pClientComm->HandleMessageReceived(std::move(pMsg)); }, true);
+
+   //Test
+   auto pRxMsg = pClientComm->SendCommonMsgAndWait(Matrix::MsgService::CommonMessages::MsgType::CUSTOM, nullptr, 0, 1, 1, 1000);
+
+   //Expectations
+   EXPECT_NE(pRxMsg, nullptr);
+
+   //Cleanup
+   pClientComm = nullptr;
+}
+TEST_F(ClientCommTest, SendCommonMsgAndWait_InAckKeys_ReturnsMessage) {
+   //Setup
+   auto pClientComm = CreateClientComm();
+
+   Matrix::Common::CountdownTimer rxCaller;
+   rxCaller.StartTimer(500, [&pClientComm] {
+      auto pMsg = std::unique_ptr<CommonMessages::Header>(new CommonMessages::Header());
+      pMsg->set_msgtypeid(CommonMessages::MsgType::CUSTOM);
+      pMsg->set_origclienttype(1);
+      pMsg->set_msgkey(pClientComm->_lastMsgKey + 1);
+      pMsg->add_ackkeys(pClientComm->_lastMsgKey);
+      pClientComm->HandleMessageReceived(std::move(pMsg)); }, true);
+
+   //Test
+   auto pRxMsg = pClientComm->SendCommonMsgAndWait(Matrix::MsgService::CommonMessages::MsgType::CUSTOM, nullptr, 0, 1, 1, 1500);
+
+   //Expectations
+   EXPECT_NE(pRxMsg, nullptr);
+
+   //Cleanup
+   pClientComm = nullptr;
 }

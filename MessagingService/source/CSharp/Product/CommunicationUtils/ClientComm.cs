@@ -188,11 +188,24 @@ namespace Matrix.MsgService.CommunicationUtils
 				action(cancelToken);
 			}
 		}
+      /// <summary>
+      /// Used to signal between SendCommonMessageAndWait and OnMessageReceive
+      /// </summary>
+      private class WaitResponse
+      {
+         public ManualResetEvent AckEvent { get; private set; }
+         public Header MsgReceived { get; set; }
+         public WaitResponse()
+         {
+            AckEvent = new ManualResetEvent(false);
+         }
+      }
 
-		/// <summary>
-		/// Default port if it is not specified
-		/// </summary>
-		public const int DEFAULT_PORT = 8888;
+      /// <summary>
+      /// Default port if it is not specified
+      /// </summary>
+      public const int DEFAULT_PORT = 8888;
+      public const int DEFAULT_WAITTIME = 5000;
 		#endregion
 
 		#region fields
@@ -227,15 +240,6 @@ namespace Matrix.MsgService.CommunicationUtils
 		volatile bool _stopped;
 		PauseAndExecuter _reconnectRetryTask = null;
 
-      class WaitResponse
-      {
-         public ManualResetEvent AckEvent { get; private set; }
-         public Header MsgReceived { get; set; }
-         public WaitResponse()
-         {
-            AckEvent = new ManualResetEvent(false);
-         }
-      }
       /// <summary>
       /// holds reset events and received message for responding to SendCommonMessageAndWait
       /// </summary>
@@ -510,28 +514,26 @@ namespace Matrix.MsgService.CommunicationUtils
       {
          MessageReceived?.Invoke(this, hdr);
          WaitResponse waitResponse;
-         //if this is an ack, signal any waiting in SendCommonMessageAndWait
+         //if this is an ack, signal if there is one waiting in SendCommonMessageAndWait
          if (hdr.MsgTypeID == MsgType.Ack)
          {
             if (_ackRxEvents.TryGetValue(hdr.MsgKey, out waitResponse))
             {
                waitResponse.MsgReceived = hdr;
                waitResponse.AckEvent.Set();
+               return;
             }
          }
-         //if there are any acks, signal any waiting in SendCommonMessageAndWait
+         //if there are any acks, signal if there is one waiting in SendCommonMessageAndWait
          if (hdr.AckKeys != null)
          {
             foreach (var key in hdr.AckKeys)
             {
-               //if this acked key matches the received message and it is an ack msg, we've already set the event
-               if (hdr.MsgTypeID != MsgType.Ack || key != hdr.MsgKey)
+               if (_ackRxEvents.TryGetValue(key, out waitResponse))
                {
-                  if (_ackRxEvents.TryGetValue(key, out waitResponse))
-                  {
-                     waitResponse.MsgReceived = hdr;
-                     waitResponse.AckEvent.Set();
-                  }
+                  waitResponse.MsgReceived = hdr;
+                  waitResponse.AckEvent.Set();
+                  return;
                }
             }
          }
@@ -829,7 +831,7 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <returns>The msg that was sent</returns> 
       public Header SendCommonMessageAndWait(out Header receivedMsg, MsgType msgType, Google.Protobuf.IMessage msgToSend,
             int topic, int destClientType, int destClientID, 
-            int maxWaitTimeMS = 5000)
+            int maxWaitTimeMS = DEFAULT_WAITTIME)
       {
          receivedMsg = null;
          var waitResponse = new WaitResponse();

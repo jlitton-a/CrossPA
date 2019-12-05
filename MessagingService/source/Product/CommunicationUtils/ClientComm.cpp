@@ -174,6 +174,23 @@ int ClientComm::SendCommonMsg(CommonMessages::MsgType msgType
    int msgKey = _msgKey++;
    return SendCommonMsgInternal(msgType, pMessage, msgKey, topic, destClientType, destClientID, isArchived);
 }
+
+std::unique_ptr<CommonMessages::Header> ClientComm::SendCommonMsgAndWait(CommonMessages::MsgType msgType
+   , const google::protobuf::MessageLite* const pMessage
+   , int topic
+   , int destClientType
+   , int destClientID
+   , int waitTimeoutMS)
+{
+   int msgKey = _msgKey++;
+   auto pWaitResponse = std::make_shared<WaitResponse>();
+   _waitResponses.insert(std::make_pair(msgKey, pWaitResponse));
+   SendCommonMsgInternal(msgType, pMessage, msgKey, topic, destClientType, destClientID, false);
+   auto pRxMsg = pWaitResponse->Wait(waitTimeoutMS);
+   _waitResponses.erase(msgKey);
+   return pRxMsg;
+}
+
 int ClientComm::SendCommonMsgInternal(CommonMessages::MsgType msgType
       , const google::protobuf::MessageLite* const pMessage
       , int msgKey
@@ -327,6 +344,28 @@ void ClientComm::HandleMessageReceived(std::unique_ptr<CommonMessages::Header> p
       //TODO: eventually add the actual tracking of sent messages and acks and only ack periodically
       if (needToAck)
          SendAckMessage(*pMsg.get());
+
+      //if this is an ack, signal if there is one waiting in SendCommonMessageAndWait
+      if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK)
+      {
+         auto find = _waitResponses.find(pMsg->msgkey());
+         if (find != _waitResponses.end())
+         {
+            find->second->Signal(std::move(pMsg));
+            return;
+         }
+      }
+      //if there are any acks, signal there is one waiting in SendCommonMessageAndWait
+      for(auto key: pMsg->ackkeys())
+      {
+         //if this acked key matches the received message and it is an ack msg, we've already set the event
+         auto find = _waitResponses.find(key);
+         if (find != _waitResponses.end())
+         {
+            find->second->Signal(std::move(pMsg));
+            return;
+         }
+      }
    }
 }
 /// <summary>

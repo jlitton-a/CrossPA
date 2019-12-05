@@ -20,6 +20,7 @@
 
 namespace asio = boost::asio;
 namespace CommonMessages = Matrix::MsgService::CommonMessages;
+const int DEFAULT_WAITTIME = 5000;
 
 namespace Matrix
 {
@@ -49,6 +50,9 @@ namespace CommunicationUtils
    /// </summary>
    class ClientComm : public CommHandler, public virtual IClientComm
    {
+      //****************************************
+      // Class and Type definitions
+      //****************************************
    public:
       enum class OnlineStatus
       {
@@ -56,6 +60,54 @@ namespace CommunicationUtils
          OnLine,
          OffLine
       };
+
+   private:
+      /// <summary>
+      /// Used to signal between SendCommonMessageAndWait and OnMessageReceive
+      /// </summary>
+      class WaitResponse
+      {
+      private:
+         std::condition_variable _ackEvent;
+         std::unique_ptr<CommonMessages::Header> _pMessage;
+         std::mutex _mutext;
+
+      public:
+         WaitResponse()
+         {
+            _pMessage = nullptr;
+         }
+         ~WaitResponse()
+         {
+            _pMessage = nullptr;
+            _ackEvent.notify_all();
+         }
+      public:
+         /// <summary>
+         /// Wait for a maximum of waitTimeMS for the signal
+         /// </summary>
+         /// <param name="waitTimeMS">maximum time to wait</param>
+         /// <return>The message received, null if no message was received</return>
+         std::unique_ptr<CommonMessages::Header> Wait(int waitTimeMS)
+         {
+            // Wait until main() sends data
+            std::unique_lock<std::mutex> lk(_mutext);
+            std::chrono::milliseconds ms(waitTimeMS);
+
+            _ackEvent.wait_for(lk, ms, [&] {return _pMessage != nullptr; });
+            return std::move(_pMessage);
+         }
+         /// <summary>
+         /// Signal that the message was received and set the message
+         /// </summary>
+         /// <param name="pMessage">the Message that was received</param>
+         void Signal(std::unique_ptr<CommonMessages::Header> pMessage)
+         {
+            _pMessage = std::move(pMessage);
+            _ackEvent.notify_all();
+         }
+      };
+
       //****************************************
       // Constructors/Destructors
       //****************************************
@@ -99,6 +151,7 @@ namespace CommunicationUtils
       //List of subscriptions to send after logon to message service
       std::vector<Matrix::MsgService::CommonMessages::SubscriptionParams> _subscriptions;
       std::shared_ptr<ISubscriberMessageLists> _pSubscriberMsgLists;
+      std::unordered_map<int, std::shared_ptr<WaitResponse>> _waitResponses;
 
       //****************************************
       // Methods
@@ -125,6 +178,22 @@ namespace CommunicationUtils
             , int destClientType = 0
             , int destClientID = 0
             , bool isArchived = false);
+      /// <summary>
+      /// Sends a Common message and waits for a response
+      /// </summary>
+      /// <param name="msgType">The type of message to send</param>
+      /// <param name="pMessage">The sub-message</param>
+      /// <param name="topic">The topic of the message</param>
+      /// <param name="destClientType">The specific client type to send to, 0 for all</param>
+      /// <param name="destClientID">The specific client ID to send to, 0 for all</param>
+      /// <param name="waitTimeoutMS">Maximum time to wait</param>
+      /// <return>The response message received, null if it timed out</return>
+      COMMUNICATIONUTILS_API std::unique_ptr<CommonMessages::Header> SendCommonMsgAndWait(CommonMessages::MsgType msgType
+            , const google::protobuf::MessageLite* const pMessage
+            , int topic
+            , int destClientType
+            , int destClientID
+            , int waitTimeoutMS = DEFAULT_WAITTIME);
       /// <summary>
       /// Sends a Subscription
       /// </summary>
