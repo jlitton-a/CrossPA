@@ -245,6 +245,12 @@ class COMMONMESSAGES_API Header : public ::google::protobuf::MessageLite /* @@pr
   bool isarchived() const;
   void set_isarchived(bool value);
 
+  // int32 replyMsgKey = 10;
+  void clear_replymsgkey();
+  static const int kReplyMsgKeyFieldNumber = 10;
+  ::google::protobuf::int32 replymsgkey() const;
+  void set_replymsgkey(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:Matrix.MsgService.CommonMessages.Header)
  private:
 
@@ -260,6 +266,7 @@ class COMMONMESSAGES_API Header : public ::google::protobuf::MessageLite /* @@pr
   ::google::protobuf::int32 destclientid_;
   ::google::protobuf::int32 topic_;
   bool isarchived_;
+  ::google::protobuf::int32 replymsgkey_;
   mutable int _cached_size_;
   friend struct ::protobuf_CommonMessages_2eproto::TableStruct;
   friend void ::protobuf_CommonMessages_2eproto::InitDefaultsHeaderImpl();
@@ -630,6 +637,20 @@ inline void Header::set_isarchived(bool value) {
   
   isarchived_ = value;
   // @@protoc_insertion_point(field_set:Matrix.MsgService.CommonMessages.Header.isArchived)
+}
+
+// int32 replyMsgKey = 10;
+inline void Header::clear_replymsgkey() {
+  replymsgkey_ = 0;
+}
+inline ::google::protobuf::int32 Header::replymsgkey() const {
+  // @@protoc_insertion_point(field_get:Matrix.MsgService.CommonMessages.Header.replyMsgKey)
+  return replymsgkey_;
+}
+inline void Header::set_replymsgkey(::google::protobuf::int32 value) {
+  
+  replymsgkey_ = value;
+  // @@protoc_insertion_point(field_set:Matrix.MsgService.CommonMessages.Header.replyMsgKey)
 }
 
 // bytes msg = 15;

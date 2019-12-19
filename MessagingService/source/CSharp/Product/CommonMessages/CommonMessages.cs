@@ -25,21 +25,22 @@ namespace Matrix.MsgService.CommonMessages {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChRDb21tb25NZXNzYWdlcy5wcm90bxIgTWF0cml4Lk1zZ1NlcnZpY2UuQ29t",
-            "bW9uTWVzc2FnZXMi8wEKBkhlYWRlchI8Cgltc2dUeXBlSUQYASABKA4yKS5N",
+            "bW9uTWVzc2FnZXMiiAIKBkhlYWRlchI8Cgltc2dUeXBlSUQYASABKA4yKS5N",
             "YXRyaXguTXNnU2VydmljZS5Db21tb25NZXNzYWdlcy5Nc2dUeXBlEg4KBm1z",
             "Z0tleRgCIAEoBRIWCg5vcmlnQ2xpZW50VHlwZRgDIAEoBRIUCgxvcmlnQ2xp",
             "ZW50SUQYBCABKAUSFgoOZGVzdENsaWVudFR5cGUYBSABKAUSFAoMZGVzdENs",
             "aWVudElEGAYgASgFEg8KB2Fja0tleXMYByADKAUSDQoFdG9waWMYCCABKAUS",
-            "EgoKaXNBcmNoaXZlZBgJIAEoCBILCgNtc2cYDyABKAwiLQoFTG9nb24SEgoK",
-            "Y2xpZW50VHlwZRgBIAEoBRIQCghjbGllbnRJRBgCIAEoBSJACglTdWJzY3Jp",
-            "YmUSEgoKY2xpZW50VHlwZRgBIAEoBRIQCghjbGllbnRJRBgCIAEoBRINCgV0",
-            "b3BpYxgDIAEoBSprCgdNc2dUeXBlEhQKEElOVkFMSURfTVNHX1RZUEUQABIH",
-            "CgNBQ0sQARIJCgVMT0dPThACEgoKBkxPR09GRhADEg0KCVNVQlNDUklCRRAE",
-            "Eg8KC1VOU1VCU0NSSUJFEAUSCgoGQ1VTVE9NEGRCAkgDYgZwcm90bzM="));
+            "EgoKaXNBcmNoaXZlZBgJIAEoCBITCgtyZXBseU1zZ0tleRgKIAEoBRILCgNt",
+            "c2cYDyABKAwiLQoFTG9nb24SEgoKY2xpZW50VHlwZRgBIAEoBRIQCghjbGll",
+            "bnRJRBgCIAEoBSJACglTdWJzY3JpYmUSEgoKY2xpZW50VHlwZRgBIAEoBRIQ",
+            "CghjbGllbnRJRBgCIAEoBRINCgV0b3BpYxgDIAEoBSprCgdNc2dUeXBlEhQK",
+            "EElOVkFMSURfTVNHX1RZUEUQABIHCgNBQ0sQARIJCgVMT0dPThACEgoKBkxP",
+            "R09GRhADEg0KCVNVQlNDUklCRRAEEg8KC1VOU1VCU0NSSUJFEAUSCgoGQ1VT",
+            "VE9NEGRCAkgDYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Matrix.MsgService.CommonMessages.MsgType), }, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Header), global::Matrix.MsgService.CommonMessages.Header.Parser, new[]{ "MsgTypeID", "MsgKey", "OrigClientType", "OrigClientID", "DestClientType", "DestClientID", "AckKeys", "Topic", "IsArchived", "Msg" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Header), global::Matrix.MsgService.CommonMessages.Header.Parser, new[]{ "MsgTypeID", "MsgKey", "OrigClientType", "OrigClientID", "DestClientType", "DestClientID", "AckKeys", "Topic", "IsArchived", "ReplyMsgKey", "Msg" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Logon), global::Matrix.MsgService.CommonMessages.Logon.Parser, new[]{ "ClientType", "ClientID" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Subscribe), global::Matrix.MsgService.CommonMessages.Subscribe.Parser, new[]{ "ClientType", "ClientID", "Topic" }, null, null, null)
           }));
@@ -109,6 +110,7 @@ namespace Matrix.MsgService.CommonMessages {
       ackKeys_ = other.ackKeys_.Clone();
       topic_ = other.topic_;
       isArchived_ = other.isArchived_;
+      replyMsgKey_ = other.replyMsgKey_;
       msg_ = other.msg_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -202,7 +204,7 @@ namespace Matrix.MsgService.CommonMessages {
         = pb::FieldCodec.ForInt32(58);
     private readonly pbc::RepeatedField<int> ackKeys_ = new pbc::RepeatedField<int>();
     /// <summary>
-    ///keys that this message is acking (does not have to be an ACK message
+    ///keys that this message is acking (does not have to be an ACK message)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<int> AckKeys {
@@ -212,6 +214,9 @@ namespace Matrix.MsgService.CommonMessages {
     /// <summary>Field number for the "topic" field.</summary>
     public const int TopicFieldNumber = 8;
     private int topic_;
+    /// <summary>
+    ///topic of this message (for subscription purposes)
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int Topic {
       get { return topic_; }
@@ -223,11 +228,28 @@ namespace Matrix.MsgService.CommonMessages {
     /// <summary>Field number for the "isArchived" field.</summary>
     public const int IsArchivedFieldNumber = 9;
     private bool isArchived_;
+    /// <summary>
+    ///true if the sender was offline when it occurred
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public bool IsArchived {
       get { return isArchived_; }
       set {
         isArchived_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "replyMsgKey" field.</summary>
+    public const int ReplyMsgKeyFieldNumber = 10;
+    private int replyMsgKey_;
+    /// <summary>
+    ///if non zero, this message is a reply to a message sent with msgKey equal to replyMsgKey
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int ReplyMsgKey {
+      get { return replyMsgKey_; }
+      set {
+        replyMsgKey_ = value;
       }
     }
 
@@ -264,6 +286,7 @@ namespace Matrix.MsgService.CommonMessages {
       if(!ackKeys_.Equals(other.ackKeys_)) return false;
       if (Topic != other.Topic) return false;
       if (IsArchived != other.IsArchived) return false;
+      if (ReplyMsgKey != other.ReplyMsgKey) return false;
       if (Msg != other.Msg) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -280,6 +303,7 @@ namespace Matrix.MsgService.CommonMessages {
       hash ^= ackKeys_.GetHashCode();
       if (Topic != 0) hash ^= Topic.GetHashCode();
       if (IsArchived != false) hash ^= IsArchived.GetHashCode();
+      if (ReplyMsgKey != 0) hash ^= ReplyMsgKey.GetHashCode();
       if (Msg.Length != 0) hash ^= Msg.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -327,6 +351,10 @@ namespace Matrix.MsgService.CommonMessages {
         output.WriteRawTag(72);
         output.WriteBool(IsArchived);
       }
+      if (ReplyMsgKey != 0) {
+        output.WriteRawTag(80);
+        output.WriteInt32(ReplyMsgKey);
+      }
       if (Msg.Length != 0) {
         output.WriteRawTag(122);
         output.WriteBytes(Msg);
@@ -363,6 +391,9 @@ namespace Matrix.MsgService.CommonMessages {
       }
       if (IsArchived != false) {
         size += 1 + 1;
+      }
+      if (ReplyMsgKey != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ReplyMsgKey);
       }
       if (Msg.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(Msg);
@@ -402,6 +433,9 @@ namespace Matrix.MsgService.CommonMessages {
       }
       if (other.IsArchived != false) {
         IsArchived = other.IsArchived;
+      }
+      if (other.ReplyMsgKey != 0) {
+        ReplyMsgKey = other.ReplyMsgKey;
       }
       if (other.Msg.Length != 0) {
         Msg = other.Msg;
@@ -452,6 +486,10 @@ namespace Matrix.MsgService.CommonMessages {
           }
           case 72: {
             IsArchived = input.ReadBool();
+            break;
+          }
+          case 80: {
+            ReplyMsgKey = input.ReadInt32();
             break;
           }
           case 122: {

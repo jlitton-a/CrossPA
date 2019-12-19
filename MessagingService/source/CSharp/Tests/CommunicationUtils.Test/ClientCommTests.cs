@@ -12,6 +12,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
    [TestClass]
    public class ClientCommTest
    {
+      #region Mocks
       ISubscriberMessageLists _subscriberMsgListsMock = null;
       MsgService.CommunicationUtils.IConnectionHandler _connectionHandlerMock = null;
       Utilities.IThreadingTimer _serviceTimeoutTimerMock = null;
@@ -36,6 +37,9 @@ namespace Matrix.MsgService.CommunicationUtils.Test
             , _connectionHandlerMock, _subscriberMsgListsMock, _serviceTimeoutTimerMock, _resendMsgTimerMock
             , logonMsg, _msgStoreMock, reconnectRetryTimeMS, heartbeatTimeMS, serverTimeOutTimeMS, resendMessagesTimeMS);
       }
+      #endregion
+
+      #region Constructor
       [TestMethod]
       public void Constructor()
       {
@@ -44,11 +48,13 @@ namespace Matrix.MsgService.CommunicationUtils.Test
 
          //Test
          var underTest = new Matrix.MsgService.CommunicationUtils.ClientComm(name, "localhost", 100, null, null, 0, 0, 0);
+
          //Checks
          Assert.AreEqual(name, underTest.Name, "Name");
          Assert.IsFalse(underTest.IsConnected, "IsConnected");
          Assert.AreEqual(ClientComm.SocketState.Disconnected, underTest.ClientSocketState, "SocketState");
       }
+      #endregion
 
       #region Tests for Connect
       [TestMethod]
@@ -612,6 +618,115 @@ namespace Matrix.MsgService.CommunicationUtils.Test
 
       #endregion
 
+      #region AddClientContext and RemoveClientContext
+      [TestMethod]
+      public void AddClientContext_ReturnsContext()
+      {
+         //Setup
+         CreateMocks();
+         var underTest = CreateTestItem(null, 0, 0, 0);
+
+         //Test
+         var result = underTest.AddClientContext();
+
+         //Expectations
+         Assert.IsNotNull(result);
+      }
+      [TestMethod]
+      public void RemoveClientContext_NullContext_ReturnsFalse()
+      {
+         //Setup
+         CreateMocks();
+         var underTest = CreateTestItem(null, 0, 0, 0);
+
+         //Test
+         var result = underTest.RemoveClientContext(null);
+
+         //Expectations
+         Assert.IsFalse(result);
+      }
+      [TestMethod]
+      public void RemoveClientContext_ContextNotThere_ReturnsFalse()
+      {
+         //Setup
+         CreateMocks();
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         IClientContext clientContext = Substitute.For<IClientContext>();
+         _subscriberMsgListsMock.RemoveContext(clientContext).Returns((List<Header>)null);
+
+         //Test
+         var result = underTest.RemoveClientContext(clientContext);
+
+         //Expectations
+         Assert.IsFalse(result);
+      }
+      [TestMethod]
+      public void RemoveClientContext_RemovesFromSubscriberList()
+      {
+         //Setup
+         CreateMocks();
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         IClientContext clientContext = Substitute.For<IClientContext>();
+         List<Header> list = new List<Header>();
+
+         //Test
+         var result = underTest.RemoveClientContext(clientContext);
+
+         //Expectations
+         _subscriberMsgListsMock.Received().RemoveContext(clientContext);
+      }
+      [TestMethod]
+      public void RemoveClientContext_ContextThere_ReturnsTrue()
+      {
+         //Setup
+         CreateMocks();
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         IClientContext clientContext = Substitute.For<IClientContext>();
+         List<Header> list = new List<Header>();
+         _subscriberMsgListsMock.RemoveContext(clientContext).Returns(list);
+
+         //Test
+         var result = underTest.RemoveClientContext(clientContext);
+
+         //Expectations
+         Assert.IsTrue(result);
+      }
+      [TestMethod]
+      public void RemoveClientContext_ContextThere_SetsWaits()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         var msgList = new List<Header>();
+         Header msg = new Header();
+         msg.MsgTypeID = MsgType.Custom;
+         msg.MsgKey = 15;
+         msgList.Add(msg);
+         _subscriberMsgListsMock.RemoveContext(Arg.Any<IClientContext>()).Returns(msgList);
+
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         var context = underTest.AddClientContext();
+         Header receivedMsg = new Header();
+
+         //Test
+         //in order to test that the waiting acks are set, must call the function after the SendMessage
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            var result = underTest.RemoveClientContext(context);
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+         underTest.SendCommonMessageAndWait(out receivedMsg, context, MsgType.Custom, null, 0, 1, 1, 5000);
+
+         //Checks
+         Assert.IsNull(receivedMsg);
+      }
+      #endregion
+
       #region SendAckMessage
       [TestMethod]
       public void SendAckMessage_CallsSendMessage()
@@ -672,7 +787,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var msgType = MsgType.Custom;
 
          //Test
-         underTest.SendCommonMessage(MsgType.Custom, null, 3);
+         underTest.SendCommonMessage(null, MsgType.Custom, null, 3);
 
          //Checks
          _connectionHandlerMock.Received(1).SendMessage(Arg.Any<Header>(), out ex);
@@ -702,7 +817,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          
 
          //Test
-         underTest.SendCommonMessage(MsgType.Custom, null, 3);
+         underTest.SendCommonMessage(null, MsgType.Custom, null, 3);
 
          //Checks
          _connectionHandlerMock.Received(1).SendMessage(Arg.Any<Header>(), out ex);
@@ -731,10 +846,10 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var msgType = MsgType.Custom;
 
          //Test
-         underTest.SendCommonMessage(msgType, null, 0, 15);
+         underTest.SendCommonMessage(null, msgType, null, 0, 15);
 
          //Checks
-         _subscriberMsgListsMock.ReceivedWithAnyArgs().AddSentMessage(null);
+         _subscriberMsgListsMock.ReceivedWithAnyArgs().AddSentMessage(null, null);
       }
       [TestMethod]
       public void SendCommonMessage_NotTracking_DoesNotCallAddSentMessage()
@@ -758,10 +873,10 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var msgType = MsgType.Custom;
 
          //Test
-         underTest.SendCommonMessage(msgType, null, 3);
+         underTest.SendCommonMessage(null, msgType, null, 3);
 
          //Checks
-         _subscriberMsgListsMock.DidNotReceiveWithAnyArgs().AddSentMessage(null);
+         _subscriberMsgListsMock.DidNotReceiveWithAnyArgs().AddSentMessage(null, null);
       }
 
 
@@ -790,45 +905,14 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var msgType = MsgType.Custom;
 
          //Test
-         underTest.SendCommonMessage(msgType, null, 2, 3, 4);
+         underTest.SendCommonMessage(null, msgType, null, 2, 3, 4);
 
          //Checks
          Assert.AreEqual(keyList.Count, rxMsg.AckKeys.Count);
          _subscriberMsgListsMock.Received().RemoveFromNeedToAckList(3, 4, keyList);
       }
       [TestMethod]
-      public void SendCommonMessage_NotTracking_ToDestClient_DoesNotAddAcks()
-      {
-         //Setup
-         CreateMocks();
-         Exception ex = null;
-         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
-         Header rxMsg = null;
-         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
-         {
-            rxMsg = y;
-         }), out ex).Returns(x =>
-         {
-            x[1] = null;
-            return true;
-         });
-         var keyList = new List<int>();
-         _subscriberMsgListsMock.GetNeedToAckList(3, 4).Returns(keyList);
-
-         var underTest = CreateTestItem(null, 0, 0, 0, 0);
-         underTest.Connect();
-         var msgType = MsgType.Custom;
-
-         //Test
-         underTest.SendCommonMessage(msgType, null, 2, 3, 4);
-
-         //Checks
-         Assert.AreEqual(0, rxMsg.AckKeys.Count);
-         _subscriberMsgListsMock.DidNotReceiveWithAnyArgs().GetNeedToAckList(3, 4);
-         _subscriberMsgListsMock.DidNotReceiveWithAnyArgs().RemoveFromNeedToAckList(3, 4, keyList);
-      }
-      [TestMethod]
-      public void FrontierInterfaceTests_SendFrontierMessage_CallsStoreNewMessage()
+      public void ClientCommTest_SendCommonMessage_CallsStoreNewMessage()
       {
          //setup
          CreateMocks();
@@ -847,7 +931,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var testItem = CreateTestItem(logonMsg);
 
          //test
-         testItem.SendCommonMessage(MsgType.Custom, logonMsg, 0, 0, 0, true);
+         testItem.SendCommonMessage(null, MsgType.Custom, logonMsg, 0, 1, 0, 0, true);
 
          //expectations
          _msgStoreMock.ReceivedWithAnyArgs().StoreNewMessage(null, Arg.Any<DateTime>());
@@ -876,7 +960,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Header receivedMsg = new Header();
 
          //Test
-         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, 200);
+         IClientContext context = null;
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, context, MsgType.Custom, null, 1, 1, 200);
 
          //Checks
          Assert.IsNull(receivedMsg);
@@ -908,7 +993,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Header receivedMsg = new Header();
 
          //Test
-         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+         IClientContext context = null;
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, context, MsgType.Custom, null, 1, 1, -1);
 
          //Checks
          Assert.IsNull(receivedMsg);
@@ -941,7 +1027,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Header receivedMsg = new Header();
 
          //Test
-         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+         IClientContext context = null;
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, context, MsgType.Custom, null, 1, 1, -1);
 
          //Checks
          Assert.IsNull(receivedMsg);
@@ -972,7 +1059,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Header receivedMsg = new Header();
 
          //Test
-         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+         IClientContext context = null;
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, context, MsgType.Custom, null, 1, 1, -1);
 
          //Checks
          Assert.AreEqual(receivedMsg, replyMsg);
@@ -1003,7 +1091,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Header receivedMsg = new Header();
 
          //Test
-         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+         IClientContext context = null;
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, context, MsgType.Custom, null, 1, 1, -1);
 
          //Checks
          Assert.AreEqual(receivedMsg, replyMsg);
@@ -1034,7 +1123,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Header receivedMsg = new Header();
 
          //Test
-         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, MsgType.Custom, null, 1, 1, -1);
+         IClientContext context = null;
+         var msgSent = underTest.SendCommonMessageAndWait(out receivedMsg, context, MsgType.Custom, null, 1, 1, -1);
 
          //Checks
          Assert.AreEqual(receivedMsg, replyMsg);
@@ -1256,7 +1346,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, null));
 
          //Checks
-         _subscriberMsgListsMock.Received().RemoveSentMessage(1, 2, msgKey);
+         IClientContext context = null;
+         _subscriberMsgListsMock.Received().RemoveSentMessage(1, 2, msgKey, out context);
       }
       [TestMethod]
       public void MessageReceived_AckKeys_CallsRemoveSentMessages()
@@ -1281,7 +1372,8 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, null));
 
          //Checks
-         _subscriberMsgListsMock.Received().RemoveSentMessages(1, 2, Arg.Any<Google.Protobuf.Collections.RepeatedField<int>>());
+         IClientContext context;
+         _subscriberMsgListsMock.Received().RemoveSentMessage(1, 2, 5, out context);
       }
       [TestMethod]
       public void MessageReceived_WithAckKeys_CallsRemoveMessage()
@@ -1329,60 +1421,189 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          //Checks
          _msgStoreMock.Received().RemoveMessage(msg.MsgKey);
       }
+      [TestMethod]
+      public void MessageReceived_ReplyMsgKey_CallsRemoveMessage()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         Logon logonMsg = new Logon();
+         var underTest = CreateTestItem(logonMsg);
 
+         Header msg = new Header();
+         msg.MsgKey = 1;
+         msg.MsgTypeID = MsgType.Custom;
+         msg.ReplyMsgKey = 15;
+         msg.OrigClientType = 1;
+         msg.OrigClientID = 10;
 
-      //[TestMethod]
-      //public void MessageReceived_CallsAddToNeedToAckList_ForAckable()
-      //{
-      //   //Setup
-      //   CreateMocks();
-      //   Exception ex = null;
-      //   _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
-      //   var underTest = CreateTestItem(null, 0, 0, 0, 5000);
+         //Test
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, (Exception)null));
 
-      //   underTest.Connect();
-      //   underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
+         //Checks
+         _msgStoreMock.Received().RemoveMessage(msg.ReplyMsgKey);
+      }
+      [TestMethod]
+      public void MessageReceived_AckMsg_CallsClientContextAckReceived()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         Logon logonMsg = new Logon();
+         var underTest = CreateTestItem(logonMsg);
+         var context = underTest.AddClientContext();
 
-      //   Header msg = new Header();
-      //   int msgKey = 156;
-      //   msg.MsgKey = msgKey;
-      //   msg.MsgTypeID = MsgType.Custom;
-      //   msg.OrigClientType = 1;
-      //   msg.OrigClientID = 2;
-      //   msg.AckKeys.Add(5);
+         Header contextMsgSent = null;
+         context.AckReceived += (x) => { contextMsgSent = x; };
 
-      //   //Test
-      //   _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, null));
+         Header sentMsg = new Header();
+         sentMsg.MsgKey = 16;
+         sentMsg.MsgTypeID = MsgType.Custom;
+         sentMsg.OrigClientType = 1;
+         sentMsg.OrigClientID = 10;
 
-      //   //Checks
-      //   _subscriberMsgListsMock.ReceivedWithAnyArgs().AddToNeedToAckList(null);
-      //}
-      //[TestMethod]
-      //public void MessageReceived_DoesNotCallAddToNeedToAckList_ForNonAckable()
-      //{
-      //   //Setup
-      //   CreateMocks();
-      //   Exception ex = null;
-      //   _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
-      //   var underTest = CreateTestItem(null, 0, 0, 0, 5000);
+         IClientContext outContext = Substitute.For<IClientContext>();
+         _subscriberMsgListsMock.RemoveSentMessage(0, 1, 15, out outContext)
+            .ReturnsForAnyArgs(sentMsg)
+            .AndDoes(x => { x[3] = context; });
 
-      //   underTest.Connect();
-      //   underTest.ConnectionStatusChanged += ConnectionStatusChanged_AddToList;
+         Header ackMsg = new Header();
+         ackMsg.MsgKey = sentMsg.MsgKey;
+         ackMsg.MsgTypeID = MsgType.Ack;
+         ackMsg.OrigClientType = 1;
+         ackMsg.OrigClientID = 10;
 
-      //   Header msg = new Header();
-      //   int msgKey = 156;
-      //   msg.MsgKey = msgKey;
-      //   msg.MsgTypeID = MsgType.Ack;
-      //   msg.OrigClientType = 1;
-      //   msg.OrigClientID = 2;
-      //   msg.AckKeys.Add(5);
+         //Test
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(ackMsg, (Exception)null));
 
-      //   //Test
-      //   _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, null));
+         //Checks
+         Assert.AreEqual(sentMsg, contextMsgSent);
+      }
+      [TestMethod]
+      public void MessageReceived_AckKeys_CallsClientContextAckReceived()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         Logon logonMsg = new Logon();
+         var underTest = CreateTestItem(logonMsg);
+         var context = underTest.AddClientContext();
 
-      //   //Checks
-      //   _subscriberMsgListsMock.DidNotReceiveWithAnyArgs().AddToNeedToAckList(null);
-      //}
+         Header contextMsgSent = null;
+         context.AckReceived += (x) => { contextMsgSent = x; };
+
+         Header sentMsg = new Header();
+         sentMsg.MsgKey = 16;
+         sentMsg.MsgTypeID = MsgType.Custom;
+         sentMsg.OrigClientType = 1;
+         sentMsg.OrigClientID = 10;
+
+         IClientContext outContext = Substitute.For<IClientContext>();
+         _subscriberMsgListsMock.RemoveSentMessage(0, 1, 15, out outContext)
+            .ReturnsForAnyArgs(sentMsg)
+            .AndDoes(x => { x[3] = context; });
+
+         Header ackMsg = new Header();
+         ackMsg.MsgKey = 123;
+         ackMsg.MsgTypeID = MsgType.Custom;
+         ackMsg.AckKeys.Add(sentMsg.MsgKey);
+         ackMsg.OrigClientType = 1;
+         ackMsg.OrigClientID = 10;
+
+         //Test
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(ackMsg, (Exception)null));
+
+         //Checks
+         Assert.AreEqual(sentMsg, contextMsgSent);
+      }
+      [TestMethod]
+      public void MessageReceived_ReplyMsg_CallsClientContextMessageReceived()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         Logon logonMsg = new Logon();
+         var underTest = CreateTestItem(logonMsg);
+         var context = underTest.AddClientContext();
+
+         Header contextMsgSent = null;
+         Header contextMsgRx = null;
+         context.MessageReceived += (x, y) => { contextMsgRx = x; contextMsgSent = y; };
+
+         Header sentMsg = new Header();
+         sentMsg.MsgKey = 16;
+         sentMsg.MsgTypeID = MsgType.Custom;
+         sentMsg.OrigClientType = 1;
+         sentMsg.OrigClientID = 10;
+
+         IClientContext outContext = Substitute.For<IClientContext>();
+         _subscriberMsgListsMock.RemoveSentMessage(0, 1, 15, out outContext)
+            .ReturnsForAnyArgs(sentMsg)
+            .AndDoes(x => { x[3] = context; });
+
+         Header replyMsg = new Header();
+         replyMsg.MsgKey = 123;
+         replyMsg.ReplyMsgKey = sentMsg.MsgKey;
+         replyMsg.MsgTypeID = MsgType.Custom;
+         replyMsg.OrigClientType = 1;
+         replyMsg.OrigClientID = 10;
+
+         //Test
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new ConnectionHandler.MessageDetails(replyMsg, (Exception)null));
+
+         //Checks
+         Assert.AreEqual(replyMsg, contextMsgRx);
+         Assert.AreEqual(sentMsg, contextMsgSent);
+      }
+      [TestMethod]
+      public void MessageReceived_MessageWithNoContext_CallsNoClientContextMessageReceived()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         Logon logonMsg = new Logon();
+         var underTest = CreateTestItem(logonMsg);
+         var context = underTest.AddClientContext();
+         var noClientContext = underTest.NoClientContext;
+         Header noClientContextMsgRx = null;
+         noClientContext.MessageReceived += (x, y) => { noClientContextMsgRx = x; };
+
+         Header contextMsgSent = null;
+         Header contextMsgRx = null;
+         context.MessageReceived += (x, y) => { contextMsgRx = x; contextMsgSent = y; };
+
+         Header sentMsg = new Header();
+         sentMsg.MsgKey = 16;
+         sentMsg.MsgTypeID = MsgType.Custom;
+         sentMsg.OrigClientType = 1;
+         sentMsg.OrigClientID = 10;
+
+         IClientContext outContext = Substitute.For<IClientContext>();
+         _subscriberMsgListsMock.RemoveSentMessage(0, 1, 15, out outContext)
+            .ReturnsForAnyArgs(sentMsg)
+            .AndDoes(x => { x[3] = null; });
+
+         Header noContextMsg = new Header();
+         noContextMsg.MsgKey = 123;
+         noContextMsg.ReplyMsgKey = sentMsg.MsgKey;
+         noContextMsg.MsgTypeID = MsgType.Custom;
+         noContextMsg.OrigClientType = 1;
+         noContextMsg.OrigClientID = 10;
+
+         //Test
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new ConnectionHandler.MessageDetails(noContextMsg, (Exception)null));
+
+         //Checks
+         Assert.IsNull(contextMsgRx);
+         Assert.IsNull(contextMsgSent);
+         Assert.AreEqual(noContextMsg, noClientContextMsgRx, "MsgRx");
+      }
+
       #endregion
 
       #region OnLogonComplete
@@ -1399,13 +1620,13 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var underTest = CreateTestItem(null, 0, 0, 0);
 
          //test
-         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, (Exception)null));
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new ConnectionHandler.MessageDetails(msg, (Exception)null));
 
          //expectations
          //doesn't blow up
       }
       [TestMethod]
-      public void FrontierInterfaceTests_OnLogonComplete_MsgStore_CallsGetMessages()
+      public void ClientCommTests_OnLogonComplete_MsgStore_CallsGetMessages()
       {
          //setup
          CreateMocks();
@@ -1419,13 +1640,13 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var testItem = CreateTestItem(logon);
 
          //test
-         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, (Exception)null));
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new ConnectionHandler.MessageDetails(msg, (Exception)null));
 
          //expectations
          _msgStoreMock.Received().GetMessages();
       }
       [TestMethod]
-      public void FrontierInterfaceTests_OnLogonComplete_MsgStore_CallsAddMsgStoreRecord()
+      public void ClientCommTests_OnLogonComplete_MsgStore_CallsAddMsgStoreRecord()
       {
          //setup
          CreateMocks();
@@ -1446,13 +1667,13 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var testItem = CreateTestItem(logon);
 
          //test
-         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, (Exception)null));
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new ConnectionHandler.MessageDetails(msg, (Exception)null));
 
          //expectations
          _msgStoreMock.ReceivedWithAnyArgs().AddMsgStoreRecord(null, 0);
       }
       [TestMethod]
-      public void FrontierInterfaceTests_OnLogonComplete_SubscriberMsgList_NoTrack_DoesNotCallAddSentMessage()
+      public void ClientCommTests_OnLogonComplete_SubscriberMsgList_NoTrack_DoesNotCallAddSentMessage()
       {
          //setup
          CreateMocks();
@@ -1469,19 +1690,19 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          recordListMock.GetEnumerator().Returns(list.GetEnumerator());
          _msgStoreMock.GetMessages().Returns(recordListMock);
          Header msgAdded =  null;
-         _subscriberMsgListsMock.AddSentMessage(Arg.Do<Header>(x => msgAdded = x));
+         _subscriberMsgListsMock.AddSentMessage(Arg.Do<Header>(x => msgAdded = x), null);
 
          Logon logon = new Logon();
          var testItem = CreateTestItem(logon, 0, 2000, 4000, 200);
 
          //test
-         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, (Exception)null));
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new ConnectionHandler.MessageDetails(msg, (Exception)null));
 
          //expectations
-         _subscriberMsgListsMock.DidNotReceiveWithAnyArgs().AddSentMessage(null);
+         _subscriberMsgListsMock.DidNotReceiveWithAnyArgs().AddSentMessage(null, null);
       }
       [TestMethod]
-      public void FrontierInterfaceTests_OnLogonComplete_SubscriberMsgList_Tracks_CallsAddSentMessage()
+      public void ClientCommTests_OnLogonComplete_SubscriberMsgList_Tracks_CallsAddSentMessage()
       {
          //setup
          CreateMocks();
@@ -1501,20 +1722,20 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          recordListMock.GetEnumerator().Returns(list.GetEnumerator());
          _msgStoreMock.GetMessages().Returns(recordListMock);
          Header msgAdded = null;
-         _subscriberMsgListsMock.AddSentMessage(Arg.Do<Header>(x => msgAdded = x));
+         _subscriberMsgListsMock.AddSentMessage(Arg.Do<Header>(x => msgAdded = x), null);
 
          Logon logon = new Logon();
          var testItem = CreateTestItem(logon, 0, 2000, 4000, 200);
 
          //test
-         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, (Exception)null));
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new ConnectionHandler.MessageDetails(msg, (Exception)null));
 
          //expectations
-         _subscriberMsgListsMock.ReceivedWithAnyArgs().AddSentMessage(null);
+         _subscriberMsgListsMock.ReceivedWithAnyArgs().AddSentMessage(null, null);
          Assert.IsTrue(msgAdded.IsArchived);
       }
       [TestMethod]
-      public void FrontierInterfaceTests_OnLogonComplete_MsgStore_CallsSendsMessage()
+      public void ClientCommTests_OnLogonComplete_MsgStore_CallsSendsMessage()
       {
          //setup
          CreateMocks();
@@ -1538,7 +1759,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var testItem = CreateTestItem(logon);
 
          //test
-         _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(msg, (Exception)null));
+         _connectionHandlerMock.MessageReceived += Raise.EventWith(new ConnectionHandler.MessageDetails(msg, (Exception)null));
 
          //expectations
          _connectionHandlerMock.ReceivedWithAnyArgs().SendMessage(null, out ex);

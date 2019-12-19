@@ -100,7 +100,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          msg.MsgKey = 1;
 
          //Test
-         bool added = underTest.AddSentMessage(msg);
+         bool added = underTest.AddSentMessage(msg, null);
 
          //Checks
          Assert.IsFalse(added, "Return value");
@@ -115,7 +115,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          msg.MsgKey = 3;
 
          //Test
-         bool added = underTest.AddSentMessage(msg);
+         bool added = underTest.AddSentMessage(msg, null);
 
          //Checks
          Assert.IsTrue(added, "Return value");
@@ -133,7 +133,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          msg.DestClientID = 2;
 
          //Test
-         bool added = underTest.AddSentMessage(msg);
+         bool added = underTest.AddSentMessage(msg, null);
 
          //Checks
          Assert.IsTrue(added, "Return value");
@@ -148,10 +148,10 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          msg.MsgKey = 3;
          msg.DestClientType = 1;
          msg.DestClientID = 2;
-         underTest.AddSentMessage(msg);
+         underTest.AddSentMessage(msg, null);
 
          //Test
-         bool added = underTest.AddSentMessage(msg);
+         bool added = underTest.AddSentMessage(msg, null);
 
          //Checks
          Assert.IsFalse(added, "Return value");
@@ -190,7 +190,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          underTest.AddSubscription(1, 2);
          var msg = new Header();
          msg.MsgKey = 1;
-         underTest.AddSentMessage(msg);
+         underTest.AddSentMessage(msg, null);
 
          //Test
          var list = underTest.GetMessages(1, 2, 1000);
@@ -206,7 +206,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var msg = new Header();
          msg.MsgKey = 1;
          msg.Topic = 3;
-         underTest.AddSentMessage(msg);
+         underTest.AddSentMessage(msg, null);
          System.Threading.Thread.Sleep(30);
 
          //Test
@@ -307,10 +307,11 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          int msgKey = 1;
 
          //Test
-         bool removed = underTest.RemoveSentMessage(1, 2, msgKey);
+         IClientContext context;
+         var removed = underTest.RemoveSentMessage(1, 2, msgKey, out context);
 
          //Checks
-         Assert.IsFalse(removed, "Return value");
+         Assert.IsNull(removed, "Return value");
       }
       [TestMethod]
       public void SubscriberMessageListsTests_RemoveSentMessage_KeyNotThere_ReturnsFalse()
@@ -325,10 +326,11 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          underTest.AddSubscription(msg.DestClientType, msg.DestClientID);
 
          //Test
-         bool removed = underTest.RemoveSentMessage(msg.DestClientType, msg.DestClientID, msgKey);
+         IClientContext context;
+         var removed = underTest.RemoveSentMessage(msg.DestClientType, msg.DestClientID, msgKey, out context);
 
          //Checks
-         Assert.IsFalse(removed, "Return value");
+         Assert.IsNull(removed, "Return value");
       }
       [TestMethod]
       public void SubscriberMessageListsTests_RemoveSentMessage_ReturnsTrue()
@@ -340,13 +342,54 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          msg.MsgKey = msgKey;
          msg.DestClientType = 3;
          msg.DestClientID = 6;
-         underTest.AddSentMessage(msg);
+         underTest.AddSentMessage(msg, null);
 
          //Test
-         bool removed = underTest.RemoveSentMessage(msg.DestClientType, msg.DestClientID, msgKey);
+         IClientContext context;
+         var removed = underTest.RemoveSentMessage(msg.DestClientType, msg.DestClientID, msgKey, out context);
 
          //Checks
-         Assert.IsTrue(removed, "Return value");
+         Assert.IsNotNull(removed, "Return value");
+      }
+      [TestMethod]
+      public void SubscriberMessageListsTests_RemoveSentMessage_ReturnsContext()
+      {
+         //Setup
+         var underTest = new Matrix.MsgService.CommunicationUtils.SubscriberMessageLists();
+         int msgKey = 1;
+         Header msg = new Header();
+         msg.MsgKey = msgKey;
+         msg.DestClientType = 3;
+         msg.DestClientID = 6;
+         IClientContext clientContext = Substitute.For<IClientContext>();
+         underTest.AddSentMessage(msg, clientContext);
+
+         //Test
+         IClientContext returnedContext;
+         var removed = underTest.RemoveSentMessage(msg.DestClientType, msg.DestClientID, msgKey, out returnedContext);
+
+         //Checks
+         Assert.AreEqual(returnedContext, clientContext);
+      }
+      [TestMethod]
+      public void SubscriberMessageListsTests_RemoveSentMessage_ReturnsNullContext()
+      {
+         //Setup
+         var underTest = new Matrix.MsgService.CommunicationUtils.SubscriberMessageLists();
+         int msgKey = 1;
+         Header msg = new Header();
+         msg.MsgKey = msgKey;
+         msg.DestClientType = 3;
+         msg.DestClientID = 6;
+         IClientContext clientContext = null;
+         underTest.AddSentMessage(msg, clientContext);
+
+         //Test
+         IClientContext returnedContext;
+         var removed = underTest.RemoveSentMessage(msg.DestClientType, msg.DestClientID, msgKey, out returnedContext);
+
+         //Checks
+         Assert.AreEqual(returnedContext, clientContext);
       }
       #endregion
 
@@ -403,7 +446,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          msg.MsgKey = 3;
          msg.DestClientType = 15;
          msg.DestClientID = 5;
-         underTest.AddSentMessage(msg);
+         underTest.AddSentMessage(msg, null);
          var ackKeys = new Google.Protobuf.Collections.RepeatedField<int>();
          ackKeys.Add(msg.MsgKey);
 
@@ -442,6 +485,47 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          //Checks
          Assert.IsTrue(removed, "Return value");
          Assert.IsFalse(underTest.IsSubscribed(1, 2), "Is subscribed after");
+      }
+      #endregion
+
+      #region RemoveContext
+      [TestMethod]
+      public void SubscriberMessageListsTests_RemoveContext_NullContext()
+      {
+         //Setup
+         var underTest = new Matrix.MsgService.CommunicationUtils.SubscriberMessageLists();
+         int msgKey = 1;
+         Header msg = new Header();
+         msg.MsgKey = msgKey;
+         msg.DestClientType = 3;
+         msg.DestClientID = 6;
+         IClientContext clientContext = null;
+         underTest.AddSentMessage(msg, clientContext);
+
+         //Test
+         var removed = underTest.RemoveContext(clientContext);
+
+         //Checks
+         Assert.IsNull(removed);
+      }
+      [TestMethod]
+      public void SubscriberMessageListsTests_RemoveContext_RemovesMessages()
+      {
+         //Setup
+         var underTest = new Matrix.MsgService.CommunicationUtils.SubscriberMessageLists();
+         int msgKey = 1;
+         Header msg = new Header();
+         msg.MsgKey = msgKey;
+         msg.DestClientType = 3;
+         msg.DestClientID = 6;
+         IClientContext clientContext = Substitute.For<IClientContext>();
+         underTest.AddSentMessage(msg, clientContext);
+
+         //Test
+         var removed = underTest.RemoveContext(clientContext);
+
+         //Checks
+         Assert.IsTrue(removed.Count > 0);
       }
       #endregion
 

@@ -139,6 +139,7 @@ const int Header::kDestClientIDFieldNumber;
 const int Header::kAckKeysFieldNumber;
 const int Header::kTopicFieldNumber;
 const int Header::kIsArchivedFieldNumber;
+const int Header::kReplyMsgKeyFieldNumber;
 const int Header::kMsgFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
@@ -161,16 +162,16 @@ Header::Header(const Header& from)
     msg_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.msg_);
   }
   ::memcpy(&msgtypeid_, &from.msgtypeid_,
-    static_cast<size_t>(reinterpret_cast<char*>(&isarchived_) -
-    reinterpret_cast<char*>(&msgtypeid_)) + sizeof(isarchived_));
+    static_cast<size_t>(reinterpret_cast<char*>(&replymsgkey_) -
+    reinterpret_cast<char*>(&msgtypeid_)) + sizeof(replymsgkey_));
   // @@protoc_insertion_point(copy_constructor:Matrix.MsgService.CommonMessages.Header)
 }
 
 void Header::SharedCtor() {
   msg_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&msgtypeid_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&isarchived_) -
-      reinterpret_cast<char*>(&msgtypeid_)) + sizeof(isarchived_));
+      reinterpret_cast<char*>(&replymsgkey_) -
+      reinterpret_cast<char*>(&msgtypeid_)) + sizeof(replymsgkey_));
   _cached_size_ = 0;
 }
 
@@ -210,8 +211,8 @@ void Header::Clear() {
   ackkeys_.Clear();
   msg_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&msgtypeid_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&isarchived_) -
-      reinterpret_cast<char*>(&msgtypeid_)) + sizeof(isarchived_));
+      reinterpret_cast<char*>(&replymsgkey_) -
+      reinterpret_cast<char*>(&msgtypeid_)) + sizeof(replymsgkey_));
   _internal_metadata_.Clear();
 }
 
@@ -363,6 +364,20 @@ bool Header::MergePartialFromCodedStream(
         break;
       }
 
+      // int32 replyMsgKey = 10;
+      case 10: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(80u /* 80 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &replymsgkey_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
       // bytes msg = 15;
       case 15: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
@@ -451,6 +466,11 @@ void Header::SerializeWithCachedSizes(
   // bool isArchived = 9;
   if (this->isarchived() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteBool(9, this->isarchived(), output);
+  }
+
+  // int32 replyMsgKey = 10;
+  if (this->replymsgkey() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(10, this->replymsgkey(), output);
   }
 
   // bytes msg = 15;
@@ -546,6 +566,13 @@ size_t Header::ByteSizeLong() const {
     total_size += 1 + 1;
   }
 
+  // int32 replyMsgKey = 10;
+  if (this->replymsgkey() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->replymsgkey());
+  }
+
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = cached_size;
@@ -594,6 +621,9 @@ void Header::MergeFrom(const Header& from) {
   if (from.isarchived() != 0) {
     set_isarchived(from.isarchived());
   }
+  if (from.replymsgkey() != 0) {
+    set_replymsgkey(from.replymsgkey());
+  }
 }
 
 void Header::CopyFrom(const Header& from) {
@@ -623,6 +653,7 @@ void Header::InternalSwap(Header* other) {
   swap(destclientid_, other->destclientid_);
   swap(topic_, other->topic_);
   swap(isarchived_, other->isarchived_);
+  swap(replymsgkey_, other->replymsgkey_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }
