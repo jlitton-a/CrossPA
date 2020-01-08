@@ -319,7 +319,6 @@ void ClientComm::HandleMessageReceived(std::unique_ptr<CommonMessages::Header> p
          _isLoggedOn = true;
          SendSubscribeMessages();
       }
-      bool needToAck = NeedToAckRxMsg(pMsg.get());
       //if we are tracking
       if (_pSubscriberMsgLists != nullptr)
       {
@@ -330,23 +329,32 @@ void ClientComm::HandleMessageReceived(std::unique_ptr<CommonMessages::Header> p
          else
          {
             _pSubscriberMsgLists->SetClientOnLine(pMsg->origclienttype(), pMsg->origclientid(), true);
+            int replyMsgKey = 0;
+            //if this is a reply to a message, remove it from sent messages
             if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK)
-               _pSubscriberMsgLists->RemoveSentMessage(pMsg->origclienttype(), pMsg->origclientid(), pMsg->msgkey());
+               replyMsgKey = pMsg->msgkey();
+            else
+               replyMsgKey = pMsg->replymsgkey();
+            if (replyMsgKey > 0)
+               _pSubscriberMsgLists->RemoveSentMessage(pMsg->origclienttype(), pMsg->origclientid(), replyMsgKey);
          }
          _pSubscriberMsgLists->RemoveSentMessages(pMsg->origclienttype(), pMsg->origclientid(), pMsg->ackkeys());
-         //Add this message as one that needs to be acked
-//       if (needToAck)
-//          _pSubscriberMsgLists->AddToNeedToAckList(msg);
       }
 
       CommHandler::OnMessageReceived(pMsg.get());
 
       //TODO: eventually add the actual tracking of sent messages and acks and only ack periodically
+      bool needToAck = NeedToAckRxMsg(pMsg.get());
       if (needToAck)
          SendAckMessage(*pMsg.get());
 
-      //if this is an ack, signal if there is one waiting in SendCommonMessageAndWait
+      int replyMsgKey = 0;
+      //if this is a reply to a message, signal if there is one waiting in SendCommonMessageAndWait
       if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK)
+         replyMsgKey = pMsg->msgkey();
+      else
+         replyMsgKey = pMsg->replymsgkey();
+      if(replyMsgKey > 0)
       {
          auto find = _waitResponses.find(pMsg->msgkey());
          if (find != _waitResponses.end())
