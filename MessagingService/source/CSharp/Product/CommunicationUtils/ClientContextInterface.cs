@@ -40,6 +40,14 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="msgToAck">the message to be acked</param>
       void SendAckMessage(Header msgToAck);
       /// <summary>
+      /// Send an acknowledgement that msgToNack was received but was not processed.
+      /// reason and details may provide information about why it was not processed
+      /// </summary>
+      /// <param name="msgToNack">the message to be acked</param>
+      /// <param name="reason">client defined reason identifier for the Nack</param>
+      /// <param name="details">details for the Nack</param>
+      void SendNackMessage(Header msgToNack, int reason = 0, string details = "");
+      /// <summary>
       /// Sends a common message, returns the MsgKey used
       /// </summary>
       /// <param name="msgType">type of message</param>
@@ -153,6 +161,18 @@ namespace Matrix.MsgService.CommunicationUtils
       {
          if (Context != null && Context.ClientMsgComm != null)
             Context.ClientMsgComm.SendAckMessage(msgToAck);
+      }
+      /// <summary>
+      /// Send an acknowledgement that msgToNack was received but was not processed.
+      /// reason and details may provide information about why it was not processed
+      /// </summary>
+      /// <param name="msgToNack">the message to be acked</param>
+      /// <param name="reason">client defined reason identifier for the Nack</param>
+      /// <param name="details">details for the Nack</param>
+      public void SendNackMessage(Header msgToNack, int reason = 0, string details = "")
+      {
+         if (Context != null && Context.ClientMsgComm != null)
+            Context.ClientMsgComm.SendNackMessage(msgToNack, reason, details);
       }
       /// <summary>
       /// </summary>

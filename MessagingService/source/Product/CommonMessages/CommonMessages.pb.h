@@ -37,19 +37,22 @@ namespace protobuf_CommonMessages_2eproto {
 struct COMMONMESSAGES_API TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[3];
+  static const ::google::protobuf::internal::ParseTable schema[4];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
 };
 void COMMONMESSAGES_API InitDefaultsHeaderImpl();
 void COMMONMESSAGES_API InitDefaultsHeader();
+void COMMONMESSAGES_API InitDefaultsNackDetailsImpl();
+void COMMONMESSAGES_API InitDefaultsNackDetails();
 void COMMONMESSAGES_API InitDefaultsLogonImpl();
 void COMMONMESSAGES_API InitDefaultsLogon();
 void COMMONMESSAGES_API InitDefaultsSubscribeImpl();
 void COMMONMESSAGES_API InitDefaultsSubscribe();
 inline void COMMONMESSAGES_API InitDefaults() {
   InitDefaultsHeader();
+  InitDefaultsNackDetails();
   InitDefaultsLogon();
   InitDefaultsSubscribe();
 }
@@ -63,6 +66,9 @@ COMMONMESSAGES_API extern HeaderDefaultTypeInternal _Header_default_instance_;
 class Logon;
 class LogonDefaultTypeInternal;
 COMMONMESSAGES_API extern LogonDefaultTypeInternal _Logon_default_instance_;
+class NackDetails;
+class NackDetailsDefaultTypeInternal;
+COMMONMESSAGES_API extern NackDetailsDefaultTypeInternal _NackDetails_default_instance_;
 class Subscribe;
 class SubscribeDefaultTypeInternal;
 COMMONMESSAGES_API extern SubscribeDefaultTypeInternal _Subscribe_default_instance_;
@@ -80,6 +86,7 @@ enum MsgType {
   LOGOFF = 3,
   SUBSCRIBE = 4,
   UNSUBSCRIBE = 5,
+  NACK = 6,
   CUSTOM = 100,
   MsgType_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
   MsgType_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
@@ -273,6 +280,118 @@ class COMMONMESSAGES_API Header : public ::google::protobuf::MessageLite /* @@pr
 };
 // -------------------------------------------------------------------
 
+class COMMONMESSAGES_API NackDetails : public ::google::protobuf::MessageLite /* @@protoc_insertion_point(class_definition:Matrix.MsgService.CommonMessages.NackDetails) */ {
+ public:
+  NackDetails();
+  virtual ~NackDetails();
+
+  NackDetails(const NackDetails& from);
+
+  inline NackDetails& operator=(const NackDetails& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  NackDetails(NackDetails&& from) noexcept
+    : NackDetails() {
+    *this = ::std::move(from);
+  }
+
+  inline NackDetails& operator=(NackDetails&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const NackDetails& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const NackDetails* internal_default_instance() {
+    return reinterpret_cast<const NackDetails*>(
+               &_NackDetails_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    1;
+
+  void Swap(NackDetails* other);
+  friend void swap(NackDetails& a, NackDetails& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline NackDetails* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  NackDetails* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CheckTypeAndMergeFrom(const ::google::protobuf::MessageLite& from)
+    PROTOBUF_FINAL;
+  void CopyFrom(const NackDetails& from);
+  void MergeFrom(const NackDetails& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  void DiscardUnknownFields();
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  void InternalSwap(NackDetails* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::std::string GetTypeName() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // string details = 2;
+  void clear_details();
+  static const int kDetailsFieldNumber = 2;
+  const ::std::string& details() const;
+  void set_details(const ::std::string& value);
+  #if LANG_CXX11
+  void set_details(::std::string&& value);
+  #endif
+  void set_details(const char* value);
+  void set_details(const char* value, size_t size);
+  ::std::string* mutable_details();
+  ::std::string* release_details();
+  void set_allocated_details(::std::string* details);
+
+  // int32 reason = 1;
+  void clear_reason();
+  static const int kReasonFieldNumber = 1;
+  ::google::protobuf::int32 reason() const;
+  void set_reason(::google::protobuf::int32 value);
+
+  // @@protoc_insertion_point(class_scope:Matrix.MsgService.CommonMessages.NackDetails)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArenaLite _internal_metadata_;
+  ::google::protobuf::internal::ArenaStringPtr details_;
+  ::google::protobuf::int32 reason_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_CommonMessages_2eproto::TableStruct;
+  friend void ::protobuf_CommonMessages_2eproto::InitDefaultsNackDetailsImpl();
+};
+// -------------------------------------------------------------------
+
 class COMMONMESSAGES_API Logon : public ::google::protobuf::MessageLite /* @@protoc_insertion_point(class_definition:Matrix.MsgService.CommonMessages.Logon) */ {
  public:
   Logon();
@@ -307,7 +426,7 @@ class COMMONMESSAGES_API Logon : public ::google::protobuf::MessageLite /* @@pro
                &_Logon_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    1;
+    2;
 
   void Swap(Logon* other);
   friend void swap(Logon& a, Logon& b) {
@@ -411,7 +530,7 @@ class COMMONMESSAGES_API Subscribe : public ::google::protobuf::MessageLite /* @
                &_Subscribe_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    2;
+    3;
 
   void Swap(Subscribe* other);
   friend void swap(Subscribe& a, Subscribe& b) {
@@ -708,6 +827,77 @@ inline void Header::set_allocated_msg(::std::string* msg) {
 
 // -------------------------------------------------------------------
 
+// NackDetails
+
+// int32 reason = 1;
+inline void NackDetails::clear_reason() {
+  reason_ = 0;
+}
+inline ::google::protobuf::int32 NackDetails::reason() const {
+  // @@protoc_insertion_point(field_get:Matrix.MsgService.CommonMessages.NackDetails.reason)
+  return reason_;
+}
+inline void NackDetails::set_reason(::google::protobuf::int32 value) {
+  
+  reason_ = value;
+  // @@protoc_insertion_point(field_set:Matrix.MsgService.CommonMessages.NackDetails.reason)
+}
+
+// string details = 2;
+inline void NackDetails::clear_details() {
+  details_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& NackDetails::details() const {
+  // @@protoc_insertion_point(field_get:Matrix.MsgService.CommonMessages.NackDetails.details)
+  return details_.GetNoArena();
+}
+inline void NackDetails::set_details(const ::std::string& value) {
+  
+  details_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:Matrix.MsgService.CommonMessages.NackDetails.details)
+}
+#if LANG_CXX11
+inline void NackDetails::set_details(::std::string&& value) {
+  
+  details_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:Matrix.MsgService.CommonMessages.NackDetails.details)
+}
+#endif
+inline void NackDetails::set_details(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  details_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:Matrix.MsgService.CommonMessages.NackDetails.details)
+}
+inline void NackDetails::set_details(const char* value, size_t size) {
+  
+  details_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:Matrix.MsgService.CommonMessages.NackDetails.details)
+}
+inline ::std::string* NackDetails::mutable_details() {
+  
+  // @@protoc_insertion_point(field_mutable:Matrix.MsgService.CommonMessages.NackDetails.details)
+  return details_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* NackDetails::release_details() {
+  // @@protoc_insertion_point(field_release:Matrix.MsgService.CommonMessages.NackDetails.details)
+  
+  return details_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void NackDetails::set_allocated_details(::std::string* details) {
+  if (details != NULL) {
+    
+  } else {
+    
+  }
+  details_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), details);
+  // @@protoc_insertion_point(field_set_allocated:Matrix.MsgService.CommonMessages.NackDetails.details)
+}
+
+// -------------------------------------------------------------------
+
 // Logon
 
 // int32 clientType = 1;
@@ -787,6 +977,8 @@ inline void Subscribe::set_topic(::google::protobuf::int32 value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

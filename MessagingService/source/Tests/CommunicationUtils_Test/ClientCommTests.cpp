@@ -114,6 +114,51 @@ public:
    }
 };
 
+//Tests SendAckMessage
+TEST_F(ClientCommTest, SendAckMessage_CallsSendMsg) {
+   //Setup
+   auto pClientComm = CreateClientComm();
+   Matrix::MsgService::CommonMessages::Header msgToAck;
+   msgToAck.set_origclienttype(1);
+   msgToAck.set_origclientid(2);
+   msgToAck.set_msgkey(3);
+
+   //Test
+   pClientComm->SendAckMessage(msgToAck);
+
+   //Expectations
+   EXPECT_EQ((int)pClientComm->_messagesSent.size(), 1);
+   EXPECT_EQ(pClientComm->_messagesSent[0].msgtypeid(), Matrix::MsgService::CommonMessages::MsgType::ACK);
+   EXPECT_EQ(pClientComm->_messagesSent[0].destclienttype(), 1);
+   EXPECT_EQ(pClientComm->_messagesSent[0].destclientid(), 2);
+   EXPECT_EQ(pClientComm->_messagesSent[0].msgkey(), 3);
+
+   //Cleanup
+   pClientComm = nullptr;
+}
+//Tests SendNackMessage
+TEST_F(ClientCommTest, SendNackMessage_CallsSendMsg) {
+   //Setup
+   auto pClientComm = CreateClientComm();
+   Matrix::MsgService::CommonMessages::Header msgToNack;
+   msgToNack.set_origclienttype(1);
+   msgToNack.set_origclientid(2);
+   msgToNack.set_msgkey(3);
+
+   //Test
+   pClientComm->SendNackMessage(msgToNack, 1, "xyz");
+
+   //Expectations
+   EXPECT_EQ((int)pClientComm->_messagesSent.size(), 1);
+   EXPECT_EQ(pClientComm->_messagesSent[0].msgtypeid(), Matrix::MsgService::CommonMessages::MsgType::NACK);
+   EXPECT_EQ(pClientComm->_messagesSent[0].destclienttype(), 1);
+   EXPECT_EQ(pClientComm->_messagesSent[0].destclientid(), 2);
+   EXPECT_EQ(pClientComm->_messagesSent[0].msgkey(), 3);
+
+   //Cleanup
+   pClientComm = nullptr;
+}
+
 //Tests SendCommonMsg
 TEST_F(ClientCommTest, SendCommonMsg_CallsSendMsg) {
    //Setup

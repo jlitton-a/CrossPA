@@ -179,6 +179,22 @@ namespace CommunicationUtils
             , int destClientID = 0
             , bool isArchived = false);
       /// <summary>
+      /// Send an acknowledgement that msgToAck was received and processed successfully
+      /// </summary>
+      /// <param name="msgToAck">the message to be acked</param>
+      COMMUNICATIONUTILS_API bool SendAckMessage(const Matrix::MsgService::CommonMessages::Header msgToAck);
+      /// <summary>
+      /// Send an acknowledgement that msgToNack was received but was not processed.
+      /// reason and details may provide information about why it was not processed
+      /// </summary>
+      /// <param name="msgToNack">the message to be acked</param>
+      /// <param name="reason">client defined reason identifier for the Nack</param>
+      /// <param name="details">details for the Nack</param>
+      COMMUNICATIONUTILS_API bool SendNackMessage(const Matrix::MsgService::CommonMessages::Header msgToNack
+         , int reason = 0
+         , const std::string details = "");
+
+      /// <summary>
       /// Sends a Common message and waits for a response
       /// </summary>
       /// <param name="msgType">The type of message to send</param>
@@ -236,11 +252,6 @@ namespace CommunicationUtils
       /// </summary>
       /// <param name="pMsg">The reason for the disconnect</param>
       COMMUNICATIONUTILS_API virtual void HandleDisconnect(DisconnectReason reason) override;
-      /// <summary>
-      /// Send an ack message for msgToAck
-      /// </summary>
-      /// <param name="msgToAck">The message to Ack</param>
-      COMMUNICATIONUTILS_API bool SendAckMessage(const Matrix::MsgService::CommonMessages::Header msgToAck);
 
       //needed to to have shared_from_this work for derived classes 
       std::shared_ptr<ClientComm> shared_from_this() { return shared_from(this); }

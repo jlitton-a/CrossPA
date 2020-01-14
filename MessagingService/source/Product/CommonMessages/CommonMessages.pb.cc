@@ -28,6 +28,11 @@ class HeaderDefaultTypeInternal {
   ::google::protobuf::internal::ExplicitlyConstructed<Header>
       _instance;
 } _Header_default_instance_;
+class NackDetailsDefaultTypeInternal {
+ public:
+  ::google::protobuf::internal::ExplicitlyConstructed<NackDetails>
+      _instance;
+} _NackDetails_default_instance_;
 class LogonDefaultTypeInternal {
  public:
   ::google::protobuf::internal::ExplicitlyConstructed<Logon>
@@ -61,6 +66,27 @@ void InitDefaultsHeaderImpl() {
 void InitDefaultsHeader() {
   static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
   ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsHeaderImpl);
+}
+
+void InitDefaultsNackDetailsImpl() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+#ifdef GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
+  ::google::protobuf::internal::InitProtobufDefaultsForceUnique();
+#else
+  ::google::protobuf::internal::InitProtobufDefaults();
+#endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
+  {
+    void* ptr = &::Matrix::MsgService::CommonMessages::_NackDetails_default_instance_;
+    new (ptr) ::Matrix::MsgService::CommonMessages::NackDetails();
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::Matrix::MsgService::CommonMessages::NackDetails::InitAsDefaultInstance();
+}
+
+void InitDefaultsNackDetails() {
+  static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
+  ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsNackDetailsImpl);
 }
 
 void InitDefaultsLogonImpl() {
@@ -117,6 +143,7 @@ bool MsgType_IsValid(int value) {
     case 3:
     case 4:
     case 5:
+    case 6:
     case 100:
       return true;
     default:
@@ -660,6 +687,248 @@ void Header::InternalSwap(Header* other) {
 
 ::std::string Header::GetTypeName() const {
   return "Matrix.MsgService.CommonMessages.Header";
+}
+
+
+// ===================================================================
+
+void NackDetails::InitAsDefaultInstance() {
+}
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int NackDetails::kReasonFieldNumber;
+const int NackDetails::kDetailsFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+NackDetails::NackDetails()
+  : ::google::protobuf::MessageLite(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    ::protobuf_CommonMessages_2eproto::InitDefaultsNackDetails();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:Matrix.MsgService.CommonMessages.NackDetails)
+}
+NackDetails::NackDetails(const NackDetails& from)
+  : ::google::protobuf::MessageLite(),
+      _internal_metadata_(NULL),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  details_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.details().size() > 0) {
+    details_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.details_);
+  }
+  reason_ = from.reason_;
+  // @@protoc_insertion_point(copy_constructor:Matrix.MsgService.CommonMessages.NackDetails)
+}
+
+void NackDetails::SharedCtor() {
+  details_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  reason_ = 0;
+  _cached_size_ = 0;
+}
+
+NackDetails::~NackDetails() {
+  // @@protoc_insertion_point(destructor:Matrix.MsgService.CommonMessages.NackDetails)
+  SharedDtor();
+}
+
+void NackDetails::SharedDtor() {
+  details_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+void NackDetails::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const NackDetails& NackDetails::default_instance() {
+  ::protobuf_CommonMessages_2eproto::InitDefaultsNackDetails();
+  return *internal_default_instance();
+}
+
+NackDetails* NackDetails::New(::google::protobuf::Arena* arena) const {
+  NackDetails* n = new NackDetails;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void NackDetails::Clear() {
+// @@protoc_insertion_point(message_clear_start:Matrix.MsgService.CommonMessages.NackDetails)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  details_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  reason_ = 0;
+  _internal_metadata_.Clear();
+}
+
+bool NackDetails::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  ::google::protobuf::internal::LiteUnknownFieldSetter unknown_fields_setter(
+      &_internal_metadata_);
+  ::google::protobuf::io::StringOutputStream unknown_fields_output(
+      unknown_fields_setter.buffer());
+  ::google::protobuf::io::CodedOutputStream unknown_fields_stream(
+      &unknown_fields_output, false);
+  // @@protoc_insertion_point(parse_start:Matrix.MsgService.CommonMessages.NackDetails)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // int32 reason = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &reason_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // string details = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_details()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->details().data(), static_cast<int>(this->details().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "Matrix.MsgService.CommonMessages.NackDetails.details"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormatLite::SkipField(
+            input, tag, &unknown_fields_stream));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:Matrix.MsgService.CommonMessages.NackDetails)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:Matrix.MsgService.CommonMessages.NackDetails)
+  return false;
+#undef DO_
+}
+
+void NackDetails::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:Matrix.MsgService.CommonMessages.NackDetails)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 reason = 1;
+  if (this->reason() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->reason(), output);
+  }
+
+  // string details = 2;
+  if (this->details().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->details().data(), static_cast<int>(this->details().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "Matrix.MsgService.CommonMessages.NackDetails.details");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      2, this->details(), output);
+  }
+
+  output->WriteRaw((::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()).data(),
+                   static_cast<int>((::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()).size()));
+  // @@protoc_insertion_point(serialize_end:Matrix.MsgService.CommonMessages.NackDetails)
+}
+
+size_t NackDetails::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:Matrix.MsgService.CommonMessages.NackDetails)
+  size_t total_size = 0;
+
+  total_size += (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()).size();
+
+  // string details = 2;
+  if (this->details().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->details());
+  }
+
+  // int32 reason = 1;
+  if (this->reason() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->reason());
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void NackDetails::CheckTypeAndMergeFrom(
+    const ::google::protobuf::MessageLite& from) {
+  MergeFrom(*::google::protobuf::down_cast<const NackDetails*>(&from));
+}
+
+void NackDetails::MergeFrom(const NackDetails& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:Matrix.MsgService.CommonMessages.NackDetails)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.details().size() > 0) {
+
+    details_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.details_);
+  }
+  if (from.reason() != 0) {
+    set_reason(from.reason());
+  }
+}
+
+void NackDetails::CopyFrom(const NackDetails& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:Matrix.MsgService.CommonMessages.NackDetails)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool NackDetails::IsInitialized() const {
+  return true;
+}
+
+void NackDetails::Swap(NackDetails* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void NackDetails::InternalSwap(NackDetails* other) {
+  using std::swap;
+  details_.Swap(&other->details_);
+  swap(reason_, other->reason_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::std::string NackDetails::GetTypeName() const {
+  return "Matrix.MsgService.CommonMessages.NackDetails";
 }
 
 

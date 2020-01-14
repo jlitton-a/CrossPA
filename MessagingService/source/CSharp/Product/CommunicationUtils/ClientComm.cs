@@ -89,10 +89,18 @@ namespace Matrix.MsgService.CommunicationUtils
       bool RemoveClientContext(IClientContext clientContext);
 
       /// <summary>
-      /// Send an Ack for a message
+      /// Send an acknowledgement that msgToAck was received and processed successfully
       /// </summary>
       /// <param name="msgToAck">the message to be acked</param>
       void SendAckMessage(Header msgToAck);
+      /// <summary>
+      /// Send an acknowledgement that msgToNack was received but was not processed.
+      /// reason and details may provide information about why it was not processed
+      /// </summary>
+      /// <param name="msgToNack">the message to be acked</param>
+      /// <param name="reason">client defined reason identifier for the Nack</param>
+      /// <param name="details">details for the Nack</param>
+      void SendNackMessage(Header msgToNack, int reason=0, string details="");
       /// <summary>
       /// Sends a common message, returns the MsgKey used
       /// </summary>
@@ -940,7 +948,25 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="msgToAck">the message to be acked</param>
       public void SendAckMessage(Header msgToAck)
       {
+         if (msgToAck == null)
+            return;
          SendCommonMessageInternal(null, MsgType.Ack, null, msgToAck.MsgKey, 0, msgToAck.OrigClientType, msgToAck.OrigClientID, 0, false, false);
+      }
+      /// <summary>
+      /// Send an acknowledgement that a message was received but was not processed.
+      /// reason and details may provide information about why it was not processed
+      /// </summary>
+      /// <param name="msgToNack">the message to be acked</param>
+      /// <param name="reason">client defined reason identifier for the Nack</param>
+      /// <param name="details">details for the Nack</param>
+      public void SendNackMessage(Header msgToNack, int reason=0, string details="")
+      {
+         if (msgToNack == null)
+            return;
+         var nackDetails = new CommonMessages.NackDetails();
+         nackDetails.Details = details;
+         nackDetails.Reason = reason;
+         SendCommonMessageInternal(null, MsgType.Nack, nackDetails, msgToNack.MsgKey, 0, msgToNack.OrigClientType, msgToNack.OrigClientID, 0, false, false);
       }
       /// <summary>
       /// Sends a common message, returns the MsgKey used

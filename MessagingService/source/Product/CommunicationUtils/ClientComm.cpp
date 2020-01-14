@@ -163,6 +163,15 @@ bool ClientComm::SendAckMessage(const Matrix::MsgService::CommonMessages::Header
 {
    return SendCommonMsgInternal(CommonMessages::MsgType::ACK, nullptr, msgToAck.msgkey(), 0, msgToAck.origclienttype(), msgToAck.origclientid());
 }
+bool ClientComm::SendNackMessage(const Matrix::MsgService::CommonMessages::Header msgToNack
+   , int reason
+   , const std::string details )
+{
+   CommonMessages::NackDetails nackDetails;
+   nackDetails.set_reason(reason);
+   nackDetails.set_details(details);
+   return SendCommonMsgInternal(CommonMessages::MsgType::NACK, &nackDetails, msgToNack.msgkey(), 0, msgToNack.origclienttype(), msgToNack.origclientid());
+}
 
 int ClientComm::SendCommonMsg(CommonMessages::MsgType msgType
    , const google::protobuf::MessageLite* const pMessage

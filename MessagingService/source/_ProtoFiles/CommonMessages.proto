@@ -21,9 +21,10 @@ enum MsgType
    LOGOFF = 3;
    SUBSCRIBE = 4;
    UNSUBSCRIBE = 5;
+   NACK = 6;
    
    CUSTOM = 100;
-  
+ 
 }
 
 //For now, this message is here to help interpret all the other messages.
@@ -45,6 +46,11 @@ message Header {
    bytes msg = 15;
 }
 
+//message for NACK MsgType
+message NackDetails {
+   int32 reason = 1;//client/msgtype specific reason for the nack
+   string details = 2; //additional details
+}
 
 //message for LOGON MsgType
 message Logon {

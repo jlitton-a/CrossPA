@@ -729,6 +729,33 @@ namespace Matrix.MsgService.CommunicationUtils.Test
 
       #region SendAckMessage
       [TestMethod]
+      public void SendAckMessage_NullMsg_DoesNothing()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         Header rxMsg = null;
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            rxMsg = y;
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         Header msg = null;
+
+         //Test
+         underTest.SendAckMessage(msg);
+
+         //Checks
+         _connectionHandlerMock.DidNotReceive().SendMessage(Arg.Any<Header>(), out ex);
+      }
+      [TestMethod]
       public void SendAckMessage_CallsSendMessage()
       {
          //Setup
@@ -761,6 +788,76 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          Assert.IsTrue(rxMsg.DestClientType == msg.OrigClientType, "Correct ClientType");
          Assert.IsTrue(rxMsg.DestClientID == msg.OrigClientID, "Correct DestClientID");
          Assert.IsTrue(rxMsg.MsgKey == msg.MsgKey, "Correct Key");
+      }
+      #endregion
+
+      #region SendNackMessage
+      [TestMethod]
+      public void SendNackMessage_NullMsg_DoesNothing()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         Header rxMsg = null;
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            rxMsg = y;
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         Header msg = null;
+
+         //Test
+         underTest.SendNackMessage(msg, 0, "");
+
+         //Checks
+         _connectionHandlerMock.DidNotReceive().SendMessage(Arg.Any<Header>(), out ex);
+      }
+      [TestMethod]
+      public void SendNackMessage_CallsSendMessage()
+      {
+         //Setup
+         CreateMocks();
+         Exception ex = null;
+         _connectionHandlerMock.Connect(out ex).Returns(x => { x[0] = null; return true; });
+         Header rxMsg = null;
+         NackDetails nackDetails = null;
+         _connectionHandlerMock.SendMessage(Arg.Do<Header>(y =>
+         {
+            rxMsg = y;
+            if (rxMsg.Msg != null)
+               nackDetails = NackDetails.Parser.ParseFrom(rxMsg.Msg);
+
+         }), out ex).Returns(x =>
+         {
+            x[1] = null;
+            return true;
+         });
+
+         var underTest = CreateTestItem(null, 0, 0, 0);
+         underTest.Connect();
+         Header msg = new Header();
+         msg.OrigClientType = 5;
+         msg.OrigClientID = 3;
+         msg.MsgKey = 2;
+
+         //Test
+         underTest.SendNackMessage(msg, 5, "xyz");
+
+         //Checks
+         _connectionHandlerMock.Received(1).SendMessage(Arg.Any<Header>(), out ex);
+         Assert.AreEqual(MsgType.Nack, rxMsg.MsgTypeID);
+         Assert.AreEqual(msg.OrigClientType, rxMsg.DestClientType, "Incorrect ClientType");
+         Assert.AreEqual(msg.OrigClientID, rxMsg.DestClientID, "Incorrect DestClientID");
+         Assert.AreEqual(msg.MsgKey, rxMsg.MsgKey, "Incorrect Key");
+         Assert.AreEqual(5, nackDetails.Reason, "Incorrect reason");
+         Assert.AreEqual("xyz", nackDetails.Details, "Incorrect Details");
       }
       #endregion
 
