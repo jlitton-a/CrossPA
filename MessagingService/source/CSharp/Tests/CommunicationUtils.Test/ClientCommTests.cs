@@ -1553,7 +1553,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var context = underTest.AddClientContext();
 
          Header contextMsgSent = null;
-         context.AckReceived += (x) => { contextMsgSent = x; };
+         context.AckReceived += (x, y) => { contextMsgSent = x; };
 
          Header sentMsg = new Header();
          sentMsg.MsgKey = 16;
@@ -1590,7 +1590,7 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          var context = underTest.AddClientContext();
 
          Header contextMsgSent = null;
-         context.AckReceived += (x) => { contextMsgSent = x; };
+         context.AckReceived += (x, y) => { contextMsgSent = x; };
 
          Header sentMsg = new Header();
          sentMsg.MsgKey = 16;

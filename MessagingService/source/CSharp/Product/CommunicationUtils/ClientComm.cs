@@ -1178,7 +1178,7 @@ namespace Matrix.MsgService.CommunicationUtils
                      {
                         _msgStore.RemoveMessage(ack);
                      }
-                     if (msg.MsgTypeID == MsgType.Ack)
+                     if (msg.MsgTypeID == MsgType.Ack || msg.MsgTypeID == MsgType.Nack)
                      {
                         _msgStore.RemoveMessage(msg.MsgKey);
                      }
@@ -1196,7 +1196,7 @@ namespace Matrix.MsgService.CommunicationUtils
                   else
                   {
                      _subscriberMsgList.SetClientOnLine(msg.OrigClientType, msg.OrigClientID, true);
-                     if (msg.MsgTypeID == MsgType.Ack)
+                     if (msg.MsgTypeID == MsgType.Ack || msg.MsgTypeID == MsgType.Nack)
                      {
                         msgHandled = HandleReceivedMessage(msg.MsgKey, msg, true);
                      }
@@ -1235,7 +1235,7 @@ namespace Matrix.MsgService.CommunicationUtils
          {
             if (ackReceived)
             {
-               clientContext.AckReceived?.Invoke(forSentMsg);
+               clientContext.AckReceived?.Invoke(rxMsg, forSentMsg);
             }
             else
             {

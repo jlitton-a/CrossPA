@@ -340,7 +340,7 @@ void ClientComm::HandleMessageReceived(std::unique_ptr<CommonMessages::Header> p
             _pSubscriberMsgLists->SetClientOnLine(pMsg->origclienttype(), pMsg->origclientid(), true);
             int replyMsgKey = 0;
             //if this is a reply to a message, remove it from sent messages
-            if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK)
+            if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK || pMsg->msgtypeid() == CommonMessages::MsgType::NACK)
                replyMsgKey = pMsg->msgkey();
             else
                replyMsgKey = pMsg->replymsgkey();
@@ -359,7 +359,7 @@ void ClientComm::HandleMessageReceived(std::unique_ptr<CommonMessages::Header> p
 
       int replyMsgKey = 0;
       //if this is a reply to a message, signal if there is one waiting in SendCommonMessageAndWait
-      if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK)
+      if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK || pMsg->msgtypeid() == CommonMessages::MsgType::NACK)
          replyMsgKey = pMsg->msgkey();
       else
          replyMsgKey = pMsg->replymsgkey();

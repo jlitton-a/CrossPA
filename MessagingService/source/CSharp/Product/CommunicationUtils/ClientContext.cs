@@ -21,10 +21,10 @@ namespace Matrix.MsgService.CommunicationUtils
    public interface IClientContext : IDisposable
    {
       /// <summary>
-      /// Function that will be called when an Ack is received
-      /// the parameter will be the message for which the ack was received
+      /// Function that will be called when an Ack or Nack is received
+      /// the parameter will be the ack or nack message and the message for which the ack was received
       /// </summary>
-      Action<Header> AckReceived { get; set; }
+      MsgRxDelegate AckReceived { get; set; }
       /// <summary>
       /// Function that will be called when a message is received
       /// The first parameter will be the message received, 
@@ -95,10 +95,10 @@ namespace Matrix.MsgService.CommunicationUtils
 
       #region events
       /// <summary>
-      /// Function that will be called when an Ack is received
-      /// the parameter will be the message for which the ack was received
+      /// Function that will be called when an Ack or Nack is received
+      /// the parameter will be the ack or nack message and the message for which the ack was received
       /// </summary>
-      public Action<Header> AckReceived { get; set; }
+      public MsgRxDelegate AckReceived { get; set; }
       /// <summary>
       /// Function that will be called when a message is received
       /// The first parameter will be the message received, the second will be the message for which it is a a reply or ack
