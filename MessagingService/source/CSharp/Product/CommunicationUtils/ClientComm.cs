@@ -1019,17 +1019,22 @@ namespace Matrix.MsgService.CommunicationUtils
          int msgKey = Interlocked.Increment(ref _msgKey);
          _ackRxEvents.TryAdd(msgKey, waitResponse);
 
-         var hdr = SendCommonMessageInternal(clientContext, msgType, msgToSend, msgKey, topic, destClientType, destClientID, replyMsgKey, false, false);
+         var sentMsg = SendCommonMessageInternal(clientContext, msgType, msgToSend, msgKey, topic, destClientType, destClientID, replyMsgKey, false, false);
          if (waitResponse.AckEvent.WaitOne(maxWaitTimeMS))
          {
             receivedMsg = waitResponse.MsgReceived;
+         }
+         //if we timed out waiting for a response, remove it from the sent messages
+         else
+         { 
+            _subscriberMsgList.RemoveSentMessage(destClientType, destClientID, msgKey, out clientContext);
          }
          if (_ackRxEvents.TryRemove(msgKey, out waitResponse))
          {
             if (waitResponse != null && waitResponse.AckEvent != null)
                waitResponse.AckEvent.Dispose();
          }
-         return hdr;
+         return sentMsg;
       }
 
       /// <summary>
@@ -1274,7 +1279,7 @@ namespace Matrix.MsgService.CommunicationUtils
                }
             }
          }
-      }
+      } 
       #region server connection checking
       private void _serverTimeoutTimer_Tick(object sender, Utilities.ThreadingTimer.TickEventArgs e)
       {
@@ -1357,7 +1362,7 @@ namespace Matrix.MsgService.CommunicationUtils
             OnConnectionStatusChanged(newState, reason, details);
          if(isConnected != IsConnected)
             OnConnectChanged(IsConnected);
-      }
+      } 
       private void BeginReading()
       {
          if (ClientSocketState == SocketState.Connected)
@@ -1383,7 +1388,7 @@ namespace Matrix.MsgService.CommunicationUtils
                   if (msgList != null)
                   {
                      foreach (var msg in msgList)
-                     {
+                     { 
                         msg.DestClientType = subscriber.Key.ClientType;
                         msg.DestClientID = subscriber.Key.ClientID;
                         msg.IsArchived = true;
