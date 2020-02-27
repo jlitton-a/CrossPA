@@ -118,11 +118,11 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <summary>
       /// stores the messages by msgKey
       /// </summary>
-      Dictionary<int, IMsgStoreRecord> _keyDictionary;
+      ConcurrentDictionary<int, IMsgStoreRecord> _keyDictionary;
       /// <summary>
       /// stores the messages by ID
       /// </summary>
-      Dictionary<int, IMsgStoreRecord> _idDictionary;
+      ConcurrentDictionary<int, IMsgStoreRecord> _idDictionary;
       #endregion
 
       #region Constructors
@@ -137,8 +137,8 @@ namespace Matrix.MsgService.CommunicationUtils
          ClientType = clientType;
          ClientID = clientID;
          _msgStoreRecordListFactory = msgStoreRecordListFactory;
-         _keyDictionary = new Dictionary<int, IMsgStoreRecord>();
-         _idDictionary = new Dictionary<int, IMsgStoreRecord>();
+         _keyDictionary = new ConcurrentDictionary<int, IMsgStoreRecord>();
+         _idDictionary = new ConcurrentDictionary<int, IMsgStoreRecord>();
       }
       #endregion
 
@@ -167,8 +167,16 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="msgKey">key to assign</param>
       public void AddMsgStoreRecord(IMsgStoreRecord msgStoreRecord, int msgKey)
       {
-         _keyDictionary[msgKey] = msgStoreRecord;
-         _idDictionary[msgStoreRecord.ID] = msgStoreRecord;
+         _keyDictionary.AddOrUpdate(msgKey, msgStoreRecord, (key, existingVal) =>
+         {
+            existingVal = msgStoreRecord;
+            _idDictionary.AddOrUpdate(msgStoreRecord.ID, msgStoreRecord, (key2, existingVal2) =>
+            {
+               existingVal2 = msgStoreRecord;
+               return existingVal2;
+            });
+            return existingVal;
+         });
       }
       /// <summary>
       /// Save the message to the database
@@ -179,8 +187,16 @@ namespace Matrix.MsgService.CommunicationUtils
       public int StoreNewMessage(CommonMessages::Header msg, DateTime msgDate)
       {
          var msgStoreRecord = _msgStoreRecordListFactory.StoreMessage(msg, msgDate);
-         _keyDictionary[msg.MsgKey] = msgStoreRecord;
-         _idDictionary[msgStoreRecord.ID] = msgStoreRecord;
+         _keyDictionary.AddOrUpdate(msg.MsgKey, msgStoreRecord, (key, existingVal) =>
+         {
+            existingVal = msgStoreRecord;
+            _idDictionary.AddOrUpdate(msgStoreRecord.ID, msgStoreRecord, (key2, existingVal2) =>
+            {
+               existingVal2 = msgStoreRecord;
+               return existingVal2;
+            });
+            return existingVal;
+         });
          return msgStoreRecord.ID;
       }
       /// <summary>
@@ -191,10 +207,10 @@ namespace Matrix.MsgService.CommunicationUtils
       public bool RemoveMessage(int msgKey)
       {
          IMsgStoreRecord msgStoreRecord;
-         if (_keyDictionary.TryGetValue(msgKey, out msgStoreRecord))
+         if (_keyDictionary.TryRemove(msgKey, out msgStoreRecord))
          {
-            _idDictionary.Remove(msgStoreRecord.ID);
-            _keyDictionary.Remove(msgKey);
+            IMsgStoreRecord dummy;
+            _idDictionary.TryRemove(msgStoreRecord.ID, out dummy);
             _msgStoreRecordListFactory.RemoveMessage(msgStoreRecord.ID);
             return true;
          }
