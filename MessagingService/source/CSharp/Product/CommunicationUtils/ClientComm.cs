@@ -31,11 +31,15 @@ namespace Matrix.MsgService.CommunicationUtils
       /// Event occurs when a message is received
       /// </summary>
       event EventHandler<Header> MessageReceived;
-       
+
       /// <summary>
       /// True if socket state is connected
       /// </summary>
       bool IsConnected { get; }
+      /// <summary>
+      /// Client Context for messages that do not have a context
+      /// </summary>
+      IClientContext NoClientContext{ get; }
       /// <summary>
       /// The connected state of the socket.
       /// </summary>
@@ -65,8 +69,79 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="subscribe">true to subscribe, false to unsubscribe</param>
       /// <returns></returns>
       bool AddSubscribe(int clientType, int clientID, int topic, bool subscribe);
+      /// <summary>
+      /// Returns true if client is online
+      /// </summary>
+      /// <param name="clientType">type of client</param>
+      /// <param name="clientID">id of client</param>
+      /// <returns>online status of client</returns>
       ClientComm.OnlineStatus IsClientOnline(int clientType, int clientID);
+      /// <summary>
+      /// Add a new client context for sending and receiving messages
+      /// </summary>
+      /// <returns>the client context added</returns>
+      IClientContext AddClientContext();
+      /// <summary>
+      /// Remove a client context-Removes all pending sent messages that have not yet been acked
+      /// </summary>
+      /// <param name="clientContext">the client context to remove</param>
+      /// <returns>true if it was in the list</returns>
+      bool RemoveClientContext(IClientContext clientContext);
 
+      /// <summary>
+      /// Send an acknowledgement that msgToAck was received and processed successfully
+      /// </summary>
+      /// <param name="msgToAck">the message to be acked</param>
+      void SendAckMessage(Header msgToAck);
+      /// <summary>
+      /// Send an acknowledgement that msgToNack was received but was not processed.
+      /// reason and details may provide information about why it was not processed
+      /// </summary>
+      /// <param name="msgToNack">the message to be acked</param>
+      /// <param name="reason">client defined reason identifier for the Nack</param>
+      /// <param name="details">details for the Nack</param>
+      void SendNackMessage(Header msgToNack, int reason=0, string details="");
+      /// <summary>
+      /// Sends a common message, returns the MsgKey used
+      /// </summary>
+      /// <param name="clientContext">The client context that is sending the message</param>
+      /// <param name="msgType">type of message</param>
+      /// <param name="msgToSend">sub message to send</param>
+      /// <param name="topic">the topic of this message</param>
+      /// <param name="destClientType">specific client type to send it to, 0 to broadcast</param>
+      /// <param name="destClientID">specific client ID to send it to, 0 for all</param>
+      /// <param name="replyMsgKey">the key of the message for which this message is a reply, 0 if it is not a reply</param>
+      /// <param name="storeMsg">true to store this message for resending on application restart</param>
+      /// <param name="isArchived">true to set the isArchived flag</param>
+      /// <returns>The msg that was sent</returns>
+      Header SendCommonMessage(IClientContext clientContext
+            , MsgType msgType, Google.Protobuf.IMessage msgToSend, int topic = 0
+            , int destClientType = 0, int destClientID = 0
+            , int replyMsgKey = 0, bool storeMsg = false, bool isArchived = false);
+      /// <summary>
+      /// Sends a common message and waits for a response. Returns the actual message sent
+      /// </summary>
+      /// <param name="receivedMsg">The message response received, null if it was not received before maxWaitTimeMS</param>
+      /// <param name="clientContext">The client context that is sending the message</param>
+      /// <param name="msgType">type of message</param>
+      /// <param name="msgToSend">sub message to send</param>
+      /// <param name="topic">the topic of this message</param>
+      /// <param name="destClientType">specific client type to send it to, 0 to broadcast</param>
+      /// <param name="destClientID">specific client ID to send it to, 0 for all</param>
+      /// <param name="replyMsgKey">the key of the message for which this message is a reply, 0 if it is not a reply</param>
+      /// <param name="maxWaitTimeMS">Maximum time to wait before timing out</param>
+      /// <returns>The msg that was sent</returns> 
+      Header SendCommonMessageAndWait(out Header receivedMsg, IClientContext clientContext
+            , MsgType msgType, Google.Protobuf.IMessage msgToSend, int topic
+            , int destClientType, int destClientID
+            , int replyMsgKey = 0
+            , int maxWaitTimeMS = ClientComm.DEFAULT_WAITTIME);
+      /// <summary>
+      /// Return true if this msg needs to be Acked (e.g. it needs to be tracked and resent until acked)
+      /// </summary>
+      /// <param name="sentMsg">the message to check</param>
+      /// <returns>true if the message needs to be acked and resent until acked</returns>
+      bool NeedToAckMsg(Header sentMsg);
    }
    /// <summary>
    /// Class for connecting to and communicating with the Messaging Service.  
@@ -76,10 +151,22 @@ namespace Matrix.MsgService.CommunicationUtils
    public class ClientComm : IClientComm
 	{
 		#region enums, types and const
+      /// <summary>
+      /// Status of connection
+      /// </summary>
       public enum OnlineStatus
       {
+         /// <summary>
+         /// Don't know the status
+         /// </summary>
          Unknown,
+         /// <summary>
+         /// it is online
+         /// </summary>
          IsOnline,
+         /// <summary>
+         /// it is not online
+         /// </summary>
          NotOnline
       }
 		/// <summary>
@@ -189,11 +276,27 @@ namespace Matrix.MsgService.CommunicationUtils
 				action(cancelToken);
 			}
 		}
+      /// <summary>
+      /// Used to signal between SendCommonMessageAndWait and OnMessageReceive
+      /// </summary>
+      private class WaitResponse
+      {
+         public ManualResetEvent AckEvent { get; private set; }
+         public Header MsgReceived { get; set; }
+         public WaitResponse()
+         {
+            AckEvent = new ManualResetEvent(false);
+         }
+      }
 
-		/// <summary>
-		/// Default port if it is not specified
-		/// </summary>
-		public const int DEFAULT_PORT = 8888;
+      /// <summary>
+      /// Default port if it is not specified
+      /// </summary>
+      public const int DEFAULT_PORT = 8888;
+      /// <summary>
+      /// Default maximum time to wait before timing out
+      /// </summary>
+      public const int DEFAULT_WAITTIME = 5000;
 		#endregion
 
 		#region fields
@@ -228,6 +331,11 @@ namespace Matrix.MsgService.CommunicationUtils
 		volatile bool _stopped;
 		PauseAndExecuter _reconnectRetryTask = null;
 
+      /// <summary>
+      /// holds reset events and received message for responding to SendCommonMessageAndWait
+      /// </summary>
+      private System.Collections.Concurrent.ConcurrentDictionary<int, WaitResponse> _ackRxEvents = new System.Collections.Concurrent.ConcurrentDictionary<int, WaitResponse>();
+
       ISubscriberMessageLists _subscriberMsgList = null;
       /// <summary>
       /// The timer used to resend messages that have not yet been acked
@@ -242,12 +350,14 @@ namespace Matrix.MsgService.CommunicationUtils
       /// Constructor for IP address and host
       /// </summary>
       /// <param name="name">name to use for logging</param>
-      /// <param name="hostname">host address</param>
-      /// <param name="port">port to use</param>
+      /// <param name="hostname">host name/IP Address for connection to the message service</param>
+      /// <param name="port">port to use for connection to the message service</param>
       /// <param name="logonMsg">The Logon message to send after connecting</param>
+      /// <param name="msgStore">Used to store messages that have not yet been acked for reapplying on restart</param>
       /// <param name="reconnectRetryTimeMS">Number of milliseconds between connect retries when connection is lost; 0 to not retry</param>
       /// <param name="heartbeatTimeMS">Number of milliseconds between when keep alive messages should be sent; 0 to not send heartbeats</param>
       /// <param name="serverTimeOutTimeMS">Number of milliseconds to consider the server has timed out; 0 to not check</param>
+      /// <param name="resendMessagesTimeMS">Number of milliseconds between resending messages that have not been acked</param>
       public ClientComm(string name,
 				string hostname, int port = DEFAULT_PORT,
 				Logon logonMsg = null,
@@ -259,16 +369,18 @@ namespace Matrix.MsgService.CommunicationUtils
             )
          : this(name, new ConnectionHandler(hostname, port), null, null, null, logonMsg, msgStore, reconnectRetryTimeMS, heartbeatTimeMS, serverTimeOutTimeMS, resendMessagesTimeMS)
       {}
-		/// <summary>
-		/// Constructor for ConnectionHandler
-		/// </summary>
-		/// <param name="name">name to use for logging</param>
-		/// <param name="connectionHandler">The ConnectionHandler to use; NOTE: it will be disposed when done</param>
-		/// <param name="logonMsg">The Logon message to send after connecting</param>
-		/// <param name="reconnectRetryTimeMS">Number of milliseconds between connect retries when connection is lost; 0 to not retry</param>
-		/// <param name="heartbeatTimeMS">Number of milliseconds between when keep alive messages should be sent; 0 to not send heartbeats</param>
-		/// <param name="serverTimeOutTimeMS">Number of milliseconds to consider the server has timed out; 0 to not check</param>
-		public ClientComm(string name,
+      /// <summary>
+      /// Constructor for ConnectionHandler
+      /// </summary>
+      /// <param name="name">name to use for logging</param>
+      /// <param name="connectionHandler">The ConnectionHandler to use; NOTE: it will be disposed when done</param>
+      /// <param name="logonMsg">The Logon message to send after connecting</param>
+      /// <param name="msgStore">Used to store messages that have not yet been acked for reapplying on restart</param>
+      /// <param name="reconnectRetryTimeMS">Number of milliseconds between connect retries when connection is lost; 0 to not retry</param>
+      /// <param name="heartbeatTimeMS">Number of milliseconds between when keep alive messages should be sent; 0 to not send heartbeats</param>
+      /// <param name="serverTimeOutTimeMS">Number of milliseconds to consider the server has timed out; 0 to not check</param>
+      /// <param name="resendMessagesTimeMS">Number of milliseconds between resending messages that have not been acked</param>
+      public ClientComm(string name,
 				IConnectionHandler connectionHandler,
 				Logon logonMsg = null,
             IMsgStore msgStore = null,
@@ -285,11 +397,14 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="name">name to use for logging</param>
       /// <param name="connectionHandler">The ConnectionHandler to use; NOTE: it will be disposed when done</param>
       /// <param name="subscriberMsgList">used to track sent messages when trackSentMessages is true</param>
+      /// <param name="serverTimeOutTimer">Timer to use for server timeouts (for unit testing)</param>
+      /// <param name="resendMsgTimer">Timer to use for resending messages (for unit testing)</param>
       /// <param name="logonMsg">The Logon message to send after connecting</param>
+      /// <param name="msgStore">Used to store messages that have not yet been acked for reapplying on restart</param>
       /// <param name="reconnectRetryTimeMS">Number of milliseconds between connect retries when connection is lost; 0 to not retry</param>
       /// <param name="heartbeatTimeMS">Number of milliseconds between when keep alive messages should be sent; 0 to not send heartbeats</param>
       /// <param name="serverTimeOutTimeMS">Number of milliseconds to consider the server has timed out; 0 to not check</param>
-      /// <param name="trackSentMessages">True to track sent messages and resend if they are not acked (not fully implemented yet)</param>
+      /// <param name="resendMessagesTimeMS">Number of milliseconds between resending messages that have not been acked</param>
       internal ClientComm(string name, 
             IConnectionHandler connectionHandler,
             ISubscriberMessageLists subscriberMsgList,
@@ -304,20 +419,20 @@ namespace Matrix.MsgService.CommunicationUtils
             ) 
 		{
          _resendMessagesTimeMS = resendMessagesTimeMS;
+         _subscriberMsgList = subscriberMsgList ?? new SubscriberMessageLists();
          if (resendMessagesTimeMS > 0)
          {
-            _subscriberMsgList = subscriberMsgList ?? new SubscriberMessageLists();
             _resendMsgTimer = resendMsgTimer ?? new Matrix.Utilities.ThreadingTimer();
             _resendMsgTimer.Tick += _resendMsgTimer_Tick;
          }
          ClientSocketState = SocketState.Disconnected;
 			Name = name;
-			_msgKey = 1;
+			_msgKey = 0;
 			_subscriptions = new HashSet<Subscribe>();
 			if (logonMsg != null)
 			{
 				_logonMsg = new Header();
-				_logonMsg.MsgKey = _msgKey++;
+				_logonMsg.MsgKey = Interlocked.Increment(ref _msgKey);
 				_logonMsg.MsgTypeID = MsgType.Logon;
             _logonMsg.Msg = ((IMessage)logonMsg).ToByteString();
 			}
@@ -345,6 +460,7 @@ namespace Matrix.MsgService.CommunicationUtils
          _needLoadMsgStore = true;
          _msgStore = msgStore;
 
+         NoClientContext = AddClientContext();
       }
 
       /// <summary>
@@ -352,7 +468,12 @@ namespace Matrix.MsgService.CommunicationUtils
       /// </summary>
       public void Dispose()
 		{
-			if (ClientSocketState == SocketState.Connected)
+         if (_subscriberMsgList != null)
+         {
+            _subscriberMsgList.Clear();
+         }
+
+         if (ClientSocketState == SocketState.Connected)
 				Disconnect();
 
 			if (_heartbeatTimer != null)
@@ -375,18 +496,19 @@ namespace Matrix.MsgService.CommunicationUtils
 		}
 		#endregion
 
-		#region ConnectionStatusChanged event
+      #region ConnectionStatusChanged event
 		/// <summary>
 		/// Arguments for the ConnectionStatusChanged event
 		/// </summary>
 		public class ConnectionStatusChangedEventArgs
 		{
-			/// <summary>
-			/// Constructor
-			/// </summary>
-			/// <param name="isConnected">true if it is currently connected</param>
-			/// <param name="reason">When isConnected is false, the reason</param>
-			public ConnectionStatusChangedEventArgs(SocketState state, DisconnectReason reason, string details)
+         /// <summary>
+         /// Constructor
+         /// </summary>
+         /// <param name="state">the current connection state of the socket</param>
+         /// <param name="reason">When the state is disconnected, the reason</param>
+         /// <param name="details">When the state is disconnected, the details</param>
+         public ConnectionStatusChangedEventArgs(SocketState state, DisconnectReason reason, string details)
 			{
 				ClientSocketState = state;
 				Reason = reason;
@@ -420,6 +542,10 @@ namespace Matrix.MsgService.CommunicationUtils
 		/// Event occurs when IsConnected changes
 		/// </summary>
 		public event EventHandler<bool> ConnectChanged;
+      /// <summary>
+      /// call to raise the ConnectChanged event
+      /// </summary>
+      /// <param name="isConnected"></param>
 		protected virtual void OnConnectChanged(bool isConnected)
 		{
 			ConnectChanged?.Invoke(this, isConnected);
@@ -431,20 +557,23 @@ namespace Matrix.MsgService.CommunicationUtils
 		/// Event occurs after logon
 		/// </summary>
 		public event EventHandler LogonComplete;
+      /// <summary>
+      /// Call to raise the LogonComplete event
+      /// </summary>
       protected virtual void OnLogonComplete()
       {
          //only do this once on startup
          //load messages that need to be sent, send them, then add them to the store
          //to be removed by an ack
          IMsgStoreRecordList msgStoreList = null;
-         lock (_lock)
+//         lock (_lock)
          {
             if (_needLoadMsgStore && _msgStore != null)
             {
                _needLoadMsgStore = false;
                msgStoreList = _msgStore.GetMessages();
             }
-         }
+         } 
          if (msgStoreList != null)
          {
             _resendPaused = true;
@@ -452,15 +581,15 @@ namespace Matrix.MsgService.CommunicationUtils
             {
                if (msgStoreRecord.HdrMsg != null)
                {
-                  msgStoreRecord.HdrMsg.MsgKey = _msgKey++;
+                  msgStoreRecord.HdrMsg.MsgKey = Interlocked.Increment(ref _msgKey);
                   msgStoreRecord.HdrMsg.IsArchived = true;
-                  lock (_lock)
+//                  lock (_lock)
                   {
                      _msgStore.AddMsgStoreRecord(msgStoreRecord, msgStoreRecord.HdrMsg.MsgKey);
                   }
-                  if (_subscriberMsgList != null && NeedToTrackSentMsg(msgStoreRecord.HdrMsg))
+                  if (_subscriberMsgList != null && NeedToAckMsg(msgStoreRecord.HdrMsg))
                   {
-                     _subscriberMsgList.AddSentMessage(msgStoreRecord.HdrMsg);
+                     _subscriberMsgList.AddSentMessage(msgStoreRecord.HdrMsg, null);
                   }
                   SendMessage(msgStoreRecord.HdrMsg);
                }
@@ -469,13 +598,21 @@ namespace Matrix.MsgService.CommunicationUtils
          }
          LogonComplete?.Invoke(this, new EventArgs());
 		}
-		#endregion
+      #endregion
 
-		#region Subscribed event
-
-		public class SubscribedEventArgs : EventArgs
+      #region Subscribed event
+      /// <summary>
+      /// Arguments for the Subscribed event
+      /// </summary>
+      public class SubscribedEventArgs : EventArgs
 		{
+         /// <summary>
+         /// the type of client subscribing
+         /// </summary>
 			public CommonMessages.ClientTypes ClientType { get; set; }
+         /// <summary>
+         /// The topic that the client is subscribing to
+         /// </summary>
 			public int Topic { get; set; }
 		}
 	
@@ -483,6 +620,10 @@ namespace Matrix.MsgService.CommunicationUtils
 		/// Event occurs after subscribe
 		/// </summary>
 		public event EventHandler<SubscribedEventArgs> Subscribed;
+      /// <summary>
+      /// Call to raise the Subscribed event
+      /// </summary>
+      /// <param name="args"></param>
 		protected virtual void OnSubscribed(SubscribedEventArgs args)
 		{
 			Subscribed?.Invoke(this, args);
@@ -494,6 +635,10 @@ namespace Matrix.MsgService.CommunicationUtils
 		/// Event occurs when a message is received
 		/// </summary>
 		public event EventHandler<Header> MessageReceived;
+      /// <summary>
+      /// Call to raise the MessageReceived event
+      /// </summary>
+      /// <param name="hdr"></param>
       protected virtual void OnMessageReceived(Header hdr)
       {
          MessageReceived?.Invoke(this, hdr);
@@ -523,6 +668,11 @@ namespace Matrix.MsgService.CommunicationUtils
          get;
          private set;
       }
+
+      /// <summary>
+      /// Client Context for messages that do not have a context
+      /// </summary>
+      public IClientContext NoClientContext { get; private set; }
       #endregion
 
       #region Connect/Disconnect Methods
@@ -555,7 +705,7 @@ namespace Matrix.MsgService.CommunicationUtils
             if (logonMsg != null)
             {
                _logonMsg = new Header();
-               _logonMsg.MsgKey = _msgKey++;
+               _logonMsg.MsgKey = Interlocked.Increment(ref _msgKey);
                _logonMsg.MsgTypeID = MsgType.Logon;
                _logonMsg.Msg = ((IMessage)logonMsg).ToByteString();
             }
@@ -707,6 +857,43 @@ namespace Matrix.MsgService.CommunicationUtils
 
       #region Messages
       /// <summary>
+      /// Add a new client context for sending and receiving messages
+      /// </summary>
+      /// <returns>the client context added</returns>
+      public IClientContext AddClientContext()
+      {
+         var newContextID = Guid.NewGuid();
+         var clientContext = new ClientContext(newContextID, this);
+         _subscriberMsgList.AddContext(clientContext);
+         return clientContext;
+      }
+      /// <summary>
+      /// Remove a client context-Removes all pending sent messages that have not yet been acked
+      /// </summary>
+      /// <param name="clientContext">the client context to remove</param>
+      /// <returns>true if it was in the list</returns>
+      public bool RemoveClientContext(IClientContext clientContext)
+      {
+         if(clientContext != null)
+         {
+            var msgList = _subscriberMsgList.RemoveContext(clientContext);
+            if(msgList != null)
+            { 
+               foreach (var msg in msgList)
+               {
+                  WaitResponse waitResponse;
+                  if (_ackRxEvents.TryGetValue(msg.MsgKey, out waitResponse))
+                  {
+                     waitResponse.MsgReceived = null;
+                     waitResponse.AckEvent.Set();
+                  }
+               }
+               return true;
+            }
+         }
+         return false;
+      }
+      /// <summary>
       /// Add a subscription.  These will be automatically sent when logon message is sent and ACKed
       /// </summary>
       /// <param name="clientType">type of client to which to subscribe</param>
@@ -761,37 +948,114 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="msgToAck">the message to be acked</param>
       public void SendAckMessage(Header msgToAck)
       {
-         SendCommonMessageInternal(MsgType.Ack, null, msgToAck.MsgKey, 0, msgToAck.OrigClientType, msgToAck.OrigClientID, false);
+         if (msgToAck == null)
+            return;
+         SendCommonMessageInternal(null, MsgType.Ack, null, msgToAck.MsgKey, 0, msgToAck.OrigClientType, msgToAck.OrigClientID, 0, false, false);
+      }
+      /// <summary>
+      /// Send an acknowledgement that a message was received but was not processed.
+      /// reason and details may provide information about why it was not processed
+      /// </summary>
+      /// <param name="msgToNack">the message to be acked</param>
+      /// <param name="reason">client defined reason identifier for the Nack</param>
+      /// <param name="details">details for the Nack</param>
+      public void SendNackMessage(Header msgToNack, int reason=0, string details="")
+      {
+         if (msgToNack == null)
+            return;
+         var nackDetails = new CommonMessages.NackDetails();
+         nackDetails.Details = details;
+         nackDetails.Reason = reason;
+         SendCommonMessageInternal(null, MsgType.Nack, nackDetails, msgToNack.MsgKey, 0, msgToNack.OrigClientType, msgToNack.OrigClientID, 0, false, false);
       }
       /// <summary>
       /// Sends a common message, returns the MsgKey used
       /// </summary>
+      /// <param name="clientContext">The client context that is sending the message</param>
       /// <param name="msgType">type of message</param>
       /// <param name="msgToSend">sub message to send</param>
       /// <param name="topic">the topic of this message</param>
       /// <param name="destClientType">specific client type to send it to, 0 to broadcast</param>
       /// <param name="destClientID">specific client ID to send it to, 0 for all</param>
+      /// <param name="replyMsgKey">the key of the message for which this message is a reply, 0 if it is not a reply</param>
       /// <param name="storeMsg">true to store this message for resending on application restart</param>
       /// <param name="isArchived">true to set the isArchived flag</param>
-      /// <returns>The msg key that was used</returns>
-      public Header SendCommonMessage(MsgType msgType, Google.Protobuf.IMessage msgToSend, int topic = 0, int destClientType = 0, int destClientID = 0, bool storeMsg = false, bool isArchived = false)
+      /// <returns>The msg that was sent</returns>
+      public Header SendCommonMessage(IClientContext clientContext
+            , MsgType msgType, Google.Protobuf.IMessage msgToSend, int topic = 0
+            , int destClientType = 0, int destClientID = 0
+            , int replyMsgKey = 0, bool storeMsg = false, bool isArchived = false)
       {
-         return SendCommonMessageInternal(msgType, msgToSend, _msgKey++, topic, destClientType, destClientID, storeMsg, isArchived);
+         return SendCommonMessageInternal(clientContext, msgType, msgToSend, Interlocked.Increment(ref _msgKey), topic,
+               destClientType, destClientID, replyMsgKey, storeMsg, isArchived);
+      }
+      private Header SendCommonMessage(MsgType msgType, Google.Protobuf.IMessage msgToSend, int topic = 0
+            , int destClientType = 0, int destClientID = 0
+            , int replyMsgKey = 0, bool storeMsg = false, bool isArchived = false)
+      {
+         return SendCommonMessage(null, msgType, msgToSend, topic, destClientType, destClientID, replyMsgKey, storeMsg, isArchived);
+      }
+      /// <summary>
+      /// Sends a common message and waits for a response. Returns the actual message sent
+      /// </summary>
+      /// <param name="clientContext">the client context that is sending this message</param>
+      /// <param name="receivedMsg">The message response received, null if it was not received before maxWaitTimeMS</param>
+      /// <param name="msgType">type of message</param>
+      /// <param name="msgToSend">sub message to send</param>
+      /// <param name="topic">the topic of this message</param>
+      /// <param name="destClientType">specific client type to send it to, 0 to broadcast</param>
+      /// <param name="destClientID">specific client ID to send it to, 0 for all</param>
+      /// <param name="replyMsgKey">the key of the message for which this message is a reply, 0 if it is not a reply</param>
+      /// <param name="maxWaitTimeMS">Maximum time to wait before timing out</param>
+      /// <returns>The msg that was sent</returns> 
+      public Header SendCommonMessageAndWait(out Header receivedMsg, IClientContext clientContext
+            , MsgType msgType, Google.Protobuf.IMessage msgToSend, int topic
+            , int destClientType, int destClientID
+            , int replyMsgKey = 0
+            , int maxWaitTimeMS = ClientComm.DEFAULT_WAITTIME)
+      {
+         receivedMsg = null;
+         var waitResponse = new WaitResponse();
+         int msgKey = Interlocked.Increment(ref _msgKey);
+         _ackRxEvents.TryAdd(msgKey, waitResponse);
+
+         var sentMsg = SendCommonMessageInternal(clientContext, msgType, msgToSend, msgKey, topic, destClientType, destClientID, replyMsgKey, false, false);
+         if (waitResponse.AckEvent.WaitOne(maxWaitTimeMS))
+         {
+            receivedMsg = waitResponse.MsgReceived;
+         }
+         //if we timed out waiting for a response, remove it from the sent messages
+         else
+         { 
+            _subscriberMsgList.RemoveSentMessage(destClientType, destClientID, msgKey, out clientContext);
+         }
+         if (_ackRxEvents.TryRemove(msgKey, out waitResponse))
+         {
+            if (waitResponse != null && waitResponse.AckEvent != null)
+               waitResponse.AckEvent.Dispose();
+         }
+         return sentMsg;
       }
 
       /// <summary>
       /// Sends a common message, returns the MsgKey used
       /// </summary>
+      /// <param name="clientContext">the client context that is sending this message</param>
       /// <param name="msgType">type of message</param>
       /// <param name="msgToSend">sub message to send</param>
       /// <param name="msgKey">the key to use</param>
       /// <param name="topic">the topic of this message</param>
       /// <param name="destClientType">specific client type to send it to, 0 to broadcast</param>
       /// <param name="destClientID">specific client ID to send it to, 0 for all</param>
+      /// <param name="replyMsgKey">the key of the message for which this message is a reply, 0 if it is not a reply</param>
       /// <param name="storeMsg">true to store this message for resending on application restart</param>
       /// <param name="isArchived">true to set the isArchived flag</param>
       /// <returns>The msg key that was used</returns>
-      private Header SendCommonMessageInternal(MsgType msgType, Google.Protobuf.IMessage msgToSend, int msgKey, int topic, int destClientType, int destClientID, bool storeMsg, bool isArchived = false)
+      private Header SendCommonMessageInternal(IClientContext clientContext
+            , MsgType msgType, Google.Protobuf.IMessage msgToSend, int msgKey, int topic
+            , int destClientType, int destClientID
+            , int replyMsgKey, bool storeMsg, bool isArchived
+            )
       {
          Header msg = new Header();
          msg.MsgKey = msgKey;
@@ -800,16 +1064,17 @@ namespace Matrix.MsgService.CommunicationUtils
          msg.DestClientType = destClientType;
          msg.DestClientID = destClientID;
          msg.IsArchived = isArchived;
+         msg.ReplyMsgKey = replyMsgKey;
          if (msgToSend != null)
             msg.Msg = msgToSend.ToByteString();
 
-         if (_subscriberMsgList != null && NeedToTrackSentMsg(msg))
+         if (_subscriberMsgList != null && NeedToAckMsg(msg))
          {
-            _subscriberMsgList.AddSentMessage(msg);
+            _subscriberMsgList.AddSentMessage(msg, clientContext);
          }
-         lock (_lock)
+//         lock (_lock)
          {
-            if (storeMsg && _msgStore != null)
+            if (storeMsg && NeedToAckMsg(msg) && _msgStore != null)
                _msgStore.StoreNewMessage(msg, DateTime.Now);
          }
          SendMessage(msg);
@@ -857,6 +1122,12 @@ namespace Matrix.MsgService.CommunicationUtils
       #endregion
 
       #region Other
+      /// <summary>
+      /// Returns true if client is online
+      /// </summary>
+      /// <param name="clientType">type of client</param>
+      /// <param name="clientID">id of client</param>
+      /// <returns>online status of client</returns>
       public OnlineStatus IsClientOnline(int clientType, int clientID)
       {
          if (_subscriberMsgList == null)
@@ -889,7 +1160,7 @@ namespace Matrix.MsgService.CommunicationUtils
             if (e.Message != null)
             {
                Matrix.Utilities.Diagnostics.MessageLogger.LogMessage(String.Format("Received {0} msg (key={1}) from client ({2},{3})"
-                  , e.Message.MsgTypeID, e.Message.MsgKey, e.Message.OrigClientType, e.Message.OrigClientID));
+                     , e.Message.MsgTypeID, e.Message.MsgKey, e.Message.OrigClientType, e.Message.OrigClientID));
                //if this is an Ack to the Logon message
                if (e.Message.MsgTypeID == MsgType.Ack && !_isLoggedOn && _logonMsg != null && _logonMsg.MsgKey == e.Message.MsgKey)
                {
@@ -903,8 +1174,7 @@ namespace Matrix.MsgService.CommunicationUtils
                   OnLogonComplete();
                }
                var msg = e.Message;
-               bool needToAck = NeedToAckRxMsg(msg);
-               lock (_lock)
+//               lock (_lock)
                {
                   //if we are tracking
                   if (_msgStore != null)
@@ -913,13 +1183,15 @@ namespace Matrix.MsgService.CommunicationUtils
                      {
                         _msgStore.RemoveMessage(ack);
                      }
-                     if (msg.MsgTypeID == MsgType.Ack)
+                     if (msg.MsgTypeID == MsgType.Ack || msg.MsgTypeID == MsgType.Nack)
                      {
                         _msgStore.RemoveMessage(msg.MsgKey);
                      }
+                     else if (msg.ReplyMsgKey > 0)
+                        _msgStore.RemoveMessage(msg.ReplyMsgKey);
                   }
                }
-
+               bool msgHandled = false;
                if (_subscriberMsgList != null)
                {
                   if (msg.MsgTypeID == MsgType.Logoff)
@@ -929,48 +1201,65 @@ namespace Matrix.MsgService.CommunicationUtils
                   else
                   {
                      _subscriberMsgList.SetClientOnLine(msg.OrigClientType, msg.OrigClientID, true);
-                     if (msg.MsgTypeID == MsgType.Ack)
+                     if (msg.MsgTypeID == MsgType.Ack || msg.MsgTypeID == MsgType.Nack)
                      {
-                        _subscriberMsgList.RemoveSentMessage(msg.OrigClientType, msg.OrigClientID, msg.MsgKey);
+                        msgHandled = HandleReceivedMessage(msg.MsgKey, msg, true);
+                     }
+                     else if (msg.ReplyMsgKey > 0)
+                     {
+                        msgHandled = HandleReceivedMessage(msg.ReplyMsgKey, msg, false);
+                     }
+                     if (msg.AckKeys != null)
+                     {
+                        foreach (var key in msg.AckKeys)
+                        {
+                           HandleReceivedMessage(key, msg, true);
+                        }
                      }
                   }
-                  if (msg.AckKeys != null)
-                  {
-                     _subscriberMsgList.RemoveSentMessages(msg.OrigClientType, msg.OrigClientID, msg.AckKeys);
-                  }
-                  //Add this message as one that needs to be acked
-                  //                     if (needToAck)
-                  //                        _subscriberMsgList.AddToNeedToAckList(msg);
                }
-
-               OnMessageReceived(e.Message);
-               //TODO: for now ack each message, eventually use a timer to ack multiple messages 
-               if (needToAck)
-               {
-                  SendAckMessage(e.Message);
-               }
+               if (!msgHandled)
+                  NoClientContext.MessageReceived?.Invoke(msg, null);
+               OnMessageReceived(msg);
             }
          }
       }
-      /// <summary>
-      /// Return true if an ack should be sent for this msg
-      /// </summary>
-      /// <param name="rxMsg">the message to check</param>
-      /// <returns>true if an ack should be sent</returns>
-      bool NeedToAckRxMsg(Header rxMsg)
+      bool HandleReceivedMessage(int msgKey, Header rxMsg, bool ackReceived)
       {
-         //only CUSTOM message sent to a specific client should be acked
-         return rxMsg.MsgTypeID == MsgType.Custom && rxMsg.DestClientType > 0;
+         IClientContext clientContext;
+         var forSentMsg = _subscriberMsgList.RemoveSentMessage(rxMsg.OrigClientType, rxMsg.OrigClientID, msgKey, out clientContext);
+
+         WaitResponse waitResponse;
+         if (_ackRxEvents.TryGetValue(msgKey, out waitResponse))
+         {
+            waitResponse.MsgReceived = rxMsg;
+            waitResponse.AckEvent.Set();
+            return true;
+         }
+         else if (clientContext != null)
+         {
+            if (ackReceived)
+            {
+               clientContext.AckReceived?.Invoke(rxMsg, forSentMsg);
+            }
+            else
+            {
+               clientContext.MessageReceived?.Invoke(rxMsg, forSentMsg);
+            }
+            return true;
+         }
+         return false;
       }
       /// <summary>
-      /// Return true if this msg needs to be tracked and resent until acked
+      /// Return true if this msg needs to be Acked (e.g. it needs to be tracked and resent until acked)
       /// </summary>
       /// <param name="sentMsg">the message to check</param>
-      /// <returns>true if we should resend if not acked</returns>
-      bool NeedToTrackSentMsg(Header sentMsg)
+      /// <returns>true if the message needs to be acked and resent until acked</returns>
+      public bool NeedToAckMsg(Header sentMsg)
       {
          //only CUSTOM message sent to a specific client should be acked
-         return sentMsg.MsgTypeID == MsgType.Custom && sentMsg.DestClientType > 0;
+         //and don't track it if the message is a Reply
+         return sentMsg.MsgTypeID == MsgType.Custom && sentMsg.ReplyMsgKey == 0 && sentMsg.DestClientType > 0;
       }
       /// <summary>
       /// if a message has not been sent in the heartbeat time, send a _heartbeatTimeMS
@@ -990,7 +1279,7 @@ namespace Matrix.MsgService.CommunicationUtils
                }
             }
          }
-      }
+      } 
       #region server connection checking
       private void _serverTimeoutTimer_Tick(object sender, Utilities.ThreadingTimer.TickEventArgs e)
       {
@@ -1054,7 +1343,9 @@ namespace Matrix.MsgService.CommunicationUtils
       /// Checks if the connection status has changed and raises an event if it has.
       /// NOTE:  _lock should not be locked when calling this function
       /// </summary>
-      /// <param name="reason"></param>
+      /// <param name="reason">the disconnect reason</param>
+      /// <param name="newState">the new state of the socket</param>
+      /// <param name="details">details of the disconnect</param>
       /// <returns></returns>
       private void CheckConnectionChanged(SocketState newState, DisconnectReason reason = DisconnectReason.None, string details = "")
       {
@@ -1071,7 +1362,7 @@ namespace Matrix.MsgService.CommunicationUtils
             OnConnectionStatusChanged(newState, reason, details);
          if(isConnected != IsConnected)
             OnConnectChanged(IsConnected);
-      }
+      } 
       private void BeginReading()
       {
          if (ClientSocketState == SocketState.Connected)
@@ -1097,7 +1388,7 @@ namespace Matrix.MsgService.CommunicationUtils
                   if (msgList != null)
                   {
                      foreach (var msg in msgList)
-                     {
+                     { 
                         msg.DestClientType = subscriber.Key.ClientType;
                         msg.DestClientID = subscriber.Key.ClientID;
                         msg.IsArchived = true;

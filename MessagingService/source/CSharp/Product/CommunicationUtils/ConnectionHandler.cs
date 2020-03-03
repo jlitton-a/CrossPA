@@ -65,6 +65,7 @@ namespace Matrix.MsgService.CommunicationUtils
       /// Send msg to the server
       /// </summary>
       /// <param name="msg">the message to send</param>
+      /// <param name="ex">set to an exception if an error has occurred</param>
       /// <returns>true if it was able to send the message</returns>
       bool SendMessage(Header msg, out Exception ex);
 		/// <summary>
@@ -385,12 +386,13 @@ namespace Matrix.MsgService.CommunicationUtils
       #endregion
 
       #region Writing
-		/// <summary>
-		/// Send msg to the server
-		/// </summary>
-		/// <param name="msg">the message to send</param>
-		/// <returns>true if it was able to send the message</returns>
-		public bool SendMessage(Header msg, out Exception ex)
+      /// <summary>
+      /// Send msg to the server
+      /// </summary>
+      /// <param name="msg">the message to send</param>
+      /// <param name="ex">set to an exception if an error has occurred</param>
+      /// <returns>true if it was able to send the message</returns>
+      public bool SendMessage(Header msg, out Exception ex)
 		{
 			if (IsConnected)
 			{

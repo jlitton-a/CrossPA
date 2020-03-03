@@ -33,8 +33,9 @@ namespace Matrix.MsgService.CommunicationUtils
       /// Add a message to each subscribers list to wait for an ack
       /// </summary>
       /// <param name="msg">message to add</param>
+      /// <param name="senderContext">the context of the client that sent the message</param>
       /// <returns>true if the message was added</returns>
-      bool AddSentMessage(Header msg);
+      bool AddSentMessage(Header msg, IClientContext senderContext);
       /// <summary>
       /// Removes each message with a key in ackKeys from the subscriber
       /// </summary>
@@ -42,15 +43,28 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="clientID">id of client</param>
       /// <param name="ackKeys">List of keys that have been acked</param>
       /// <returns>true if the message was removed</returns>
-      bool RemoveSentMessages(int clientType, int clientID, RepeatedField<int> ackKeys);
+      bool RemoveSentMessages(int clientType, int clientID, IEnumerable<int> ackKeys);
       /// <summary>
       /// Remove a message with msgKey from the subscriber
       /// </summary>
       /// <param name="clientType">type of client</param>
       /// <param name="clientID">id of client</param>
       /// <param name="msgKey">The key of the message that has been acked</param>
+      /// <param name="context">set to the context of the client that originally sent the message</param>
       /// <returns>true if the message was removed</returns>
-      bool RemoveSentMessage(int clientType, int clientID, int msgKey);
+      Header RemoveSentMessage(int clientType, int clientID, int msgKey, out IClientContext context);
+      /// <summary>
+      /// Removes all messages that were sent by context with contextID
+      /// </summary>
+      /// <param name="context">the context for which to remove messages</param>
+      /// <returns>a list of the messages removed</returns>
+      List<Header> RemoveContext(IClientContext context);
+      /// <summary>
+      /// Add a context 
+      /// </summary>
+      /// <param name="context">the context to add</param>
+      /// <returns>true if it was added, false if it was already there</returns>
+      bool AddContext(IClientContext context);
 
       /// <summary>
       /// Adds msg.msgKey to the list of msgKeys that need to be acked
@@ -85,6 +99,10 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="clientType">type of client</param>
       /// <param name="clientID">id of client</param>
       bool IsClientOnline(int clientType, int clientID);
+      /// <summary>
+      /// Clear out everything
+      /// </summary>
+      void Clear();
    }
 
    internal interface ISubscriberMessages
@@ -194,7 +212,7 @@ namespace Matrix.MsgService.CommunicationUtils
          /// </summary>
          /// <param name="msgKeys">msg keys to remove</param>
          /// <returns>true if at least one message was removed</returns>
-         public bool RemoveMessages(RepeatedField<int> msgKeys)
+         public bool RemoveMessages(IEnumerable<int> msgKeys)
          {
             bool removed = false;
             if (msgKeys != null)
@@ -211,11 +229,13 @@ namespace Matrix.MsgService.CommunicationUtils
          /// Remove messages with msgKey
          /// </summary>
          /// <param name="msgKey">msg key to remove</param>
-         /// <returns>true if at least one message was removed</returns>
-         public bool RemoveMessage(int msgKey)
+         /// <returns>the message removed, null if there was no message</returns>
+         public Header RemoveMessage(int msgKey)
          {
             MsgInfo msgInfo;
-            return _msgList.TryRemove(msgKey, out msgInfo);
+            if (_msgList.TryRemove(msgKey, out msgInfo) && msgInfo != null)
+               return msgInfo.Msg;
+            return null;
          }
          /// <summary>
          /// Gets a list of messages with TimeSent older than numMS
@@ -239,6 +259,20 @@ namespace Matrix.MsgService.CommunicationUtils
             return list;
          }
          /// <summary>
+         /// Gets a list of all messages for this subscriber
+         /// </summary>
+         /// <returns>list of messages</returns>
+         public List<Header> GetMessages()
+         {
+            List<Header> list = new List<Header>();
+            var msgList = _msgList.Values.ToList();
+            foreach(var item in msgList)
+            {
+               list.Add(item.Msg);
+            }
+            return list;
+         }
+         /// <summary>
          /// Add msgKey to the list of msgKeys that need to be acked
          /// </summary>
          /// <param name="msgKey">the msgKey to add</param>
@@ -249,7 +283,7 @@ namespace Matrix.MsgService.CommunicationUtils
          /// <summary>
          /// Remove msgKeys from the list of msgKeys received (no longer need to be acked)
          /// </summary>
-         /// <param name="msgKey">the msgKey to remove</param>
+         /// <param name="msgKeys">the list of msgKeys to remove</param>
          public void RemoveNeedToAckKeys(List<int> msgKeys)
          {
             if (msgKeys != null)
@@ -272,10 +306,101 @@ namespace Matrix.MsgService.CommunicationUtils
 
       }
 
+      class SentMessagesClientContexts
+      {
+         /// <summary>
+         /// ClientContext for sent messages - Key is MsgKey
+         /// </summary>
+         ConcurrentDictionary<int, IClientContext> _messagesByMsgKey = new ConcurrentDictionary<int, IClientContext>();
+         /// <summary>
+         /// List of sent messages for client Context- Key is ContextID
+         /// </summary>
+         ConcurrentDictionary<IClientContext, ConcurrentDictionary<int,Header>> _messagesByContext = new ConcurrentDictionary<IClientContext, ConcurrentDictionary<int, Header>>();
+         public SentMessagesClientContexts()
+         { }
+         public void AddMessage(Header msg, IClientContext senderContext)
+         {
+            if (senderContext != null)
+            {
+               _messagesByMsgKey.AddOrUpdate(msg.MsgKey, senderContext, (key, oldValue) => senderContext);
+               var list = _messagesByContext.GetOrAdd(senderContext,
+                     (contextID) => { return new ConcurrentDictionary<int, Header>(); });
+               list.AddOrUpdate(msg.MsgKey, msg, (msgKey, oldMsg) => msg);
+            }
+         }
+         /// <summary>
+         /// Remove a message from the lists
+         /// </summary>
+         /// <param name="msgKey">key of the message to remove</param>
+         /// <param name="msg">will be set to the message removed</param>
+         /// <param name="context">will be set to the context that sent the message</param>
+         /// <returns>true </returns>
+         public bool RemoveMessage(int msgKey, out Header msg, out IClientContext context)
+         {
+            msg = null;
+            if (_messagesByMsgKey.TryRemove(msgKey, out context))
+            {
+               if (context != null)
+               {
+                  ConcurrentDictionary<int, Header> list;
+                  if (_messagesByContext.TryGetValue(context, out list))
+                  {
+                     list.TryRemove(msgKey, out msg);
+                  }
+                  return true;
+               }
+            }
+            return false;
+         }
+         public void RemoveMessages(IEnumerable<int> msgKeys)
+         {
+            Header msg;
+            IClientContext context;
+            foreach (var msgKey in msgKeys)
+            {
+               RemoveMessage(msgKey, out msg, out context);
+            }
+         }
+         public bool AddContext(IClientContext context)
+         {
+            bool added = false;
+            _messagesByContext.GetOrAdd(context,
+                  (contextID) => { added = true; return new ConcurrentDictionary<int, Header>(); });
+            return added;
+         }
+         public List<Header> RemoveContext(IClientContext context)
+         {
+            if (context != null)
+            {
+               ConcurrentDictionary<int, Header> list;
+               if (_messagesByContext.TryRemove(context, out list))
+               {
+                  foreach (var msgKey in list.Keys)
+                  {
+                     IClientContext outContext;
+                     _messagesByMsgKey.TryRemove(msgKey, out outContext);
+                  }
+                  return list.Values.ToList();
+               }
+            }
+            return null;
+         }
+         public void Clear()
+         {
+            _messagesByContext.Clear();
+            _messagesByMsgKey.Clear();
+            var list = _messagesByContext.Keys.ToList();
+            foreach (var context in list)
+            {
+               context.Dispose();
+            }
+         }
+      }
       #endregion
 
       #region Fields
       ConcurrentDictionary<SubscriberMessageKey, SubscriberMessages> _messageLists;
+      SentMessagesClientContexts _sentMessagesByContext = new SentMessagesClientContexts();
       #endregion
 
       #region Constructors
@@ -340,7 +465,19 @@ namespace Matrix.MsgService.CommunicationUtils
       {
          var key = new SubscriberMessageKey(clientType, clientID);
          SubscriberMessages subscriberMsgs;
-         return _messageLists.TryRemove(key, out subscriberMsgs);
+         if(_messageLists.TryRemove(key, out subscriberMsgs))
+         {
+            var list = subscriberMsgs.GetMessages();
+            //TODO: we should be checking for wait messages for any that are removed
+            foreach (var msg in list)
+            {
+               IClientContext context;
+               Header outMsg;
+               _sentMessagesByContext.RemoveMessage(msg.MsgKey, out outMsg, out context);
+            }
+            return true;
+         }
+         return false;
       }
       /// <summary>
       /// Is the client currently subscriped
@@ -358,25 +495,28 @@ namespace Matrix.MsgService.CommunicationUtils
       /// NOTE: only adds if the message is for a specific client
       /// </summary>
       /// <param name="msg">message to add</param>
+      /// <param name="senderContext">the context of the client that sent the message</param>
       /// <returns>true if the message was added</returns>
-      public bool AddSentMessage(Header msg)
+      public bool AddSentMessage(Header msg, IClientContext senderContext)
       {
          bool added = false;
          if (msg.DestClientType > 0)
          {
+            //add message to the subscriber
             var key = new SubscriberMessageKey(msg.DestClientType, msg.DestClientID);
-            _messageLists.AddOrUpdate(key, 
+            _messageLists.AddOrUpdate(key,
                   (msgKey) =>
                         {
                            var msgList = new SubscriberMessages(key);
                            added = msgList.AddOrUpdateMessage(msg);
                            return msgList;
                         },
-                  (msgKey, existing) => 
+                  (msgKey, existing) =>
                         {
                            added = existing.AddOrUpdateMessage(msg);
                            return existing;
                         });
+            _sentMessagesByContext.AddMessage(msg, senderContext);
          }
          return added;
       }
@@ -387,7 +527,7 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="clientID">id of client</param>
       /// <param name="msgKeys">List of msgKeys that have been acked</param>
       /// <returns>true if the message was removed</returns>
-      public bool RemoveSentMessages(int clientType, int clientID, RepeatedField<int> msgKeys)
+      public bool RemoveSentMessages(int clientType, int clientID, IEnumerable<int> msgKeys)
       {
          var key = new SubscriberMessageKey(clientType, clientID);
          SubscriberMessages msgList;
@@ -395,6 +535,7 @@ namespace Matrix.MsgService.CommunicationUtils
          {
             return msgList.RemoveMessages(msgKeys);
          }
+         _sentMessagesByContext.RemoveMessages(msgKeys.ToList());
          return false;
       }
       /// <summary>
@@ -403,16 +544,53 @@ namespace Matrix.MsgService.CommunicationUtils
       /// <param name="clientType">type of client</param>
       /// <param name="clientID">id of client</param>
       /// <param name="msgKey">The msgKeys of the message that has been acked</param>
+      /// <param name="context">set to the context of the client that originally sent the message</param>
       /// <returns>true if the message was removed</returns>
-      public bool RemoveSentMessage(int clientType, int clientID, int msgKey)
+      public Header RemoveSentMessage(int clientType, int clientID, int msgKey, out IClientContext context)
       {
+         Header msg = null;
+         _sentMessagesByContext.RemoveMessage(msgKey, out msg, out context);
          var key = new SubscriberMessageKey(clientType, clientID);
          SubscriberMessages msgList;
          if (_messageLists.TryGetValue(key, out msgList))
          {
             return msgList.RemoveMessage(msgKey);
          }
-         return false;
+         return msg;
+      }
+      /// <summary>
+      /// Add a context 
+      /// </summary>
+      /// <param name="context">the context to add</param>
+      /// <returns>true if it was added, false if it was already there</returns>
+      public bool AddContext(IClientContext context)
+      {
+         return _sentMessagesByContext.AddContext(context);
+      }
+      /// <summary>
+      /// Removes all messages that were sent by context with contextID
+      /// </summary>
+      /// <param name="context">the context for which to remove messages</param>
+      /// <returns>a list of the messages removed</returns>
+      public List<Header> RemoveContext(IClientContext context)
+      {
+         var msgList = _sentMessagesByContext.RemoveContext(context);
+         if (msgList != null && msgList.Count() > 0)
+         {
+            foreach (var msg in msgList)
+            {
+               if (msg != null)
+               {
+                  var key = new SubscriberMessageKey(msg.DestClientType, msg.DestClientID);
+                  SubscriberMessages messages;
+                  if (_messageLists.TryGetValue(key, out messages))
+                  {
+                     messages.RemoveMessage(msg.MsgKey);
+                  }
+               }
+            }
+         }
+         return msgList;
       }
       /// <summary>
       /// Gets a list of messages that were last sent more than numMS ago
@@ -462,7 +640,7 @@ namespace Matrix.MsgService.CommunicationUtils
       /// </summary>
       /// <param name="clientType">type of client</param>
       /// <param name="clientID">id of client</param>
-      /// <param name="ackKeyList">keys to remove</param>
+      /// <param name="msgKeyList">keys to remove</param>
       public void RemoveFromNeedToAckList(int clientType, int clientID, List<int> msgKeyList)
       {
          var key = new SubscriberMessageKey(clientType, clientID);
@@ -488,6 +666,14 @@ namespace Matrix.MsgService.CommunicationUtils
             return msgList.GetNeedToAckKeys();
          }
          return null;
+      }
+      /// <summary>
+      /// Clear everything and disposes of contexts
+      /// </summary>
+      public void Clear()
+      {
+         _sentMessagesByContext.Clear();
+         _messageLists.Clear();
       }
 
       public IEnumerator<ISubscriberMessages> GetEnumerator()

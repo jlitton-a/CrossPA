@@ -163,6 +163,15 @@ bool ClientComm::SendAckMessage(const Matrix::MsgService::CommonMessages::Header
 {
    return SendCommonMsgInternal(CommonMessages::MsgType::ACK, nullptr, msgToAck.msgkey(), 0, msgToAck.origclienttype(), msgToAck.origclientid());
 }
+bool ClientComm::SendNackMessage(const Matrix::MsgService::CommonMessages::Header msgToNack
+   , int reason
+   , const std::string details )
+{
+   CommonMessages::NackDetails nackDetails;
+   nackDetails.set_reason(reason);
+   nackDetails.set_details(details);
+   return SendCommonMsgInternal(CommonMessages::MsgType::NACK, &nackDetails, msgToNack.msgkey(), 0, msgToNack.origclienttype(), msgToNack.origclientid());
+}
 
 int ClientComm::SendCommonMsg(CommonMessages::MsgType msgType
    , const google::protobuf::MessageLite* const pMessage
@@ -174,6 +183,23 @@ int ClientComm::SendCommonMsg(CommonMessages::MsgType msgType
    int msgKey = _msgKey++;
    return SendCommonMsgInternal(msgType, pMessage, msgKey, topic, destClientType, destClientID, isArchived);
 }
+
+std::unique_ptr<CommonMessages::Header> ClientComm::SendCommonMsgAndWait(CommonMessages::MsgType msgType
+   , const google::protobuf::MessageLite* const pMessage
+   , int topic
+   , int destClientType
+   , int destClientID
+   , int waitTimeoutMS)
+{
+   int msgKey = _msgKey++;
+   auto pWaitResponse = std::make_shared<WaitResponse>();
+   _waitResponses.insert(std::make_pair(msgKey, pWaitResponse));
+   SendCommonMsgInternal(msgType, pMessage, msgKey, topic, destClientType, destClientID, false);
+   auto pRxMsg = pWaitResponse->Wait(waitTimeoutMS);
+   _waitResponses.erase(msgKey);
+   return pRxMsg;
+}
+
 int ClientComm::SendCommonMsgInternal(CommonMessages::MsgType msgType
       , const google::protobuf::MessageLite* const pMessage
       , int msgKey
@@ -302,7 +328,6 @@ void ClientComm::HandleMessageReceived(std::unique_ptr<CommonMessages::Header> p
          _isLoggedOn = true;
          SendSubscribeMessages();
       }
-      bool needToAck = NeedToAckRxMsg(pMsg.get());
       //if we are tracking
       if (_pSubscriberMsgLists != nullptr)
       {
@@ -313,20 +338,51 @@ void ClientComm::HandleMessageReceived(std::unique_ptr<CommonMessages::Header> p
          else
          {
             _pSubscriberMsgLists->SetClientOnLine(pMsg->origclienttype(), pMsg->origclientid(), true);
-            if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK)
-               _pSubscriberMsgLists->RemoveSentMessage(pMsg->origclienttype(), pMsg->origclientid(), pMsg->msgkey());
+            int replyMsgKey = 0;
+            //if this is a reply to a message, remove it from sent messages
+            if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK || pMsg->msgtypeid() == CommonMessages::MsgType::NACK)
+               replyMsgKey = pMsg->msgkey();
+            else
+               replyMsgKey = pMsg->replymsgkey();
+            if (replyMsgKey > 0)
+               _pSubscriberMsgLists->RemoveSentMessage(pMsg->origclienttype(), pMsg->origclientid(), replyMsgKey);
          }
          _pSubscriberMsgLists->RemoveSentMessages(pMsg->origclienttype(), pMsg->origclientid(), pMsg->ackkeys());
-         //Add this message as one that needs to be acked
-//       if (needToAck)
-//          _pSubscriberMsgLists->AddToNeedToAckList(msg);
       }
 
       CommHandler::OnMessageReceived(pMsg.get());
 
       //TODO: eventually add the actual tracking of sent messages and acks and only ack periodically
+      bool needToAck = NeedToAckRxMsg(pMsg.get());
       if (needToAck)
          SendAckMessage(*pMsg.get());
+
+      int replyMsgKey = 0;
+      //if this is a reply to a message, signal if there is one waiting in SendCommonMessageAndWait
+      if (pMsg->msgtypeid() == CommonMessages::MsgType::ACK || pMsg->msgtypeid() == CommonMessages::MsgType::NACK)
+         replyMsgKey = pMsg->msgkey();
+      else
+         replyMsgKey = pMsg->replymsgkey();
+      if(replyMsgKey > 0)
+      {
+         auto find = _waitResponses.find(pMsg->msgkey());
+         if (find != _waitResponses.end())
+         {
+            find->second->Signal(std::move(pMsg));
+            return;
+         }
+      }
+      //if there are any acks, signal there is one waiting in SendCommonMessageAndWait
+      for(auto key: pMsg->ackkeys())
+      {
+         //if this acked key matches the received message and it is an ack msg, we've already set the event
+         auto find = _waitResponses.find(key);
+         if (find != _waitResponses.end())
+         {
+            find->second->Signal(std::move(pMsg));
+            return;
+         }
+      }
    }
 }
 /// <summary>

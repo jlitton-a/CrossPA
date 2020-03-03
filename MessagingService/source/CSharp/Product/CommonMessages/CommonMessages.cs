@@ -25,21 +25,24 @@ namespace Matrix.MsgService.CommonMessages {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChRDb21tb25NZXNzYWdlcy5wcm90bxIgTWF0cml4Lk1zZ1NlcnZpY2UuQ29t",
-            "bW9uTWVzc2FnZXMi8wEKBkhlYWRlchI8Cgltc2dUeXBlSUQYASABKA4yKS5N",
+            "bW9uTWVzc2FnZXMiiAIKBkhlYWRlchI8Cgltc2dUeXBlSUQYASABKA4yKS5N",
             "YXRyaXguTXNnU2VydmljZS5Db21tb25NZXNzYWdlcy5Nc2dUeXBlEg4KBm1z",
             "Z0tleRgCIAEoBRIWCg5vcmlnQ2xpZW50VHlwZRgDIAEoBRIUCgxvcmlnQ2xp",
             "ZW50SUQYBCABKAUSFgoOZGVzdENsaWVudFR5cGUYBSABKAUSFAoMZGVzdENs",
             "aWVudElEGAYgASgFEg8KB2Fja0tleXMYByADKAUSDQoFdG9waWMYCCABKAUS",
-            "EgoKaXNBcmNoaXZlZBgJIAEoCBILCgNtc2cYDyABKAwiLQoFTG9nb24SEgoK",
-            "Y2xpZW50VHlwZRgBIAEoBRIQCghjbGllbnRJRBgCIAEoBSJACglTdWJzY3Jp",
-            "YmUSEgoKY2xpZW50VHlwZRgBIAEoBRIQCghjbGllbnRJRBgCIAEoBRINCgV0",
-            "b3BpYxgDIAEoBSprCgdNc2dUeXBlEhQKEElOVkFMSURfTVNHX1RZUEUQABIH",
-            "CgNBQ0sQARIJCgVMT0dPThACEgoKBkxPR09GRhADEg0KCVNVQlNDUklCRRAE",
-            "Eg8KC1VOU1VCU0NSSUJFEAUSCgoGQ1VTVE9NEGRCAkgDYgZwcm90bzM="));
+            "EgoKaXNBcmNoaXZlZBgJIAEoCBITCgtyZXBseU1zZ0tleRgKIAEoBRILCgNt",
+            "c2cYDyABKAwiLgoLTmFja0RldGFpbHMSDgoGcmVhc29uGAEgASgFEg8KB2Rl",
+            "dGFpbHMYAiABKAkiLQoFTG9nb24SEgoKY2xpZW50VHlwZRgBIAEoBRIQCghj",
+            "bGllbnRJRBgCIAEoBSJACglTdWJzY3JpYmUSEgoKY2xpZW50VHlwZRgBIAEo",
+            "BRIQCghjbGllbnRJRBgCIAEoBRINCgV0b3BpYxgDIAEoBSp1CgdNc2dUeXBl",
+            "EhQKEElOVkFMSURfTVNHX1RZUEUQABIHCgNBQ0sQARIJCgVMT0dPThACEgoK",
+            "BkxPR09GRhADEg0KCVNVQlNDUklCRRAEEg8KC1VOU1VCU0NSSUJFEAUSCAoE",
+            "TkFDSxAGEgoKBkNVU1RPTRBkQgJIA2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Matrix.MsgService.CommonMessages.MsgType), }, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Header), global::Matrix.MsgService.CommonMessages.Header.Parser, new[]{ "MsgTypeID", "MsgKey", "OrigClientType", "OrigClientID", "DestClientType", "DestClientID", "AckKeys", "Topic", "IsArchived", "Msg" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Header), global::Matrix.MsgService.CommonMessages.Header.Parser, new[]{ "MsgTypeID", "MsgKey", "OrigClientType", "OrigClientID", "DestClientType", "DestClientID", "AckKeys", "Topic", "IsArchived", "ReplyMsgKey", "Msg" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.NackDetails), global::Matrix.MsgService.CommonMessages.NackDetails.Parser, new[]{ "Reason", "Details" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Logon), global::Matrix.MsgService.CommonMessages.Logon.Parser, new[]{ "ClientType", "ClientID" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Subscribe), global::Matrix.MsgService.CommonMessages.Subscribe.Parser, new[]{ "ClientType", "ClientID", "Topic" }, null, null, null)
           }));
@@ -63,6 +66,7 @@ namespace Matrix.MsgService.CommonMessages {
     [pbr::OriginalName("LOGOFF")] Logoff = 3,
     [pbr::OriginalName("SUBSCRIBE")] Subscribe = 4,
     [pbr::OriginalName("UNSUBSCRIBE")] Unsubscribe = 5,
+    [pbr::OriginalName("NACK")] Nack = 6,
     [pbr::OriginalName("CUSTOM")] Custom = 100,
   }
 
@@ -109,6 +113,7 @@ namespace Matrix.MsgService.CommonMessages {
       ackKeys_ = other.ackKeys_.Clone();
       topic_ = other.topic_;
       isArchived_ = other.isArchived_;
+      replyMsgKey_ = other.replyMsgKey_;
       msg_ = other.msg_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -202,7 +207,7 @@ namespace Matrix.MsgService.CommonMessages {
         = pb::FieldCodec.ForInt32(58);
     private readonly pbc::RepeatedField<int> ackKeys_ = new pbc::RepeatedField<int>();
     /// <summary>
-    ///keys that this message is acking (does not have to be an ACK message
+    ///keys that this message is acking (does not have to be an ACK message)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<int> AckKeys {
@@ -212,6 +217,9 @@ namespace Matrix.MsgService.CommonMessages {
     /// <summary>Field number for the "topic" field.</summary>
     public const int TopicFieldNumber = 8;
     private int topic_;
+    /// <summary>
+    ///topic of this message (for subscription purposes)
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int Topic {
       get { return topic_; }
@@ -223,11 +231,28 @@ namespace Matrix.MsgService.CommonMessages {
     /// <summary>Field number for the "isArchived" field.</summary>
     public const int IsArchivedFieldNumber = 9;
     private bool isArchived_;
+    /// <summary>
+    ///true if the sender was offline when it occurred
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public bool IsArchived {
       get { return isArchived_; }
       set {
         isArchived_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "replyMsgKey" field.</summary>
+    public const int ReplyMsgKeyFieldNumber = 10;
+    private int replyMsgKey_;
+    /// <summary>
+    ///if non zero, this message is a reply to a message sent with msgKey equal to replyMsgKey
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int ReplyMsgKey {
+      get { return replyMsgKey_; }
+      set {
+        replyMsgKey_ = value;
       }
     }
 
@@ -264,6 +289,7 @@ namespace Matrix.MsgService.CommonMessages {
       if(!ackKeys_.Equals(other.ackKeys_)) return false;
       if (Topic != other.Topic) return false;
       if (IsArchived != other.IsArchived) return false;
+      if (ReplyMsgKey != other.ReplyMsgKey) return false;
       if (Msg != other.Msg) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -280,6 +306,7 @@ namespace Matrix.MsgService.CommonMessages {
       hash ^= ackKeys_.GetHashCode();
       if (Topic != 0) hash ^= Topic.GetHashCode();
       if (IsArchived != false) hash ^= IsArchived.GetHashCode();
+      if (ReplyMsgKey != 0) hash ^= ReplyMsgKey.GetHashCode();
       if (Msg.Length != 0) hash ^= Msg.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -327,6 +354,10 @@ namespace Matrix.MsgService.CommonMessages {
         output.WriteRawTag(72);
         output.WriteBool(IsArchived);
       }
+      if (ReplyMsgKey != 0) {
+        output.WriteRawTag(80);
+        output.WriteInt32(ReplyMsgKey);
+      }
       if (Msg.Length != 0) {
         output.WriteRawTag(122);
         output.WriteBytes(Msg);
@@ -363,6 +394,9 @@ namespace Matrix.MsgService.CommonMessages {
       }
       if (IsArchived != false) {
         size += 1 + 1;
+      }
+      if (ReplyMsgKey != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(ReplyMsgKey);
       }
       if (Msg.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeBytesSize(Msg);
@@ -402,6 +436,9 @@ namespace Matrix.MsgService.CommonMessages {
       }
       if (other.IsArchived != false) {
         IsArchived = other.IsArchived;
+      }
+      if (other.ReplyMsgKey != 0) {
+        ReplyMsgKey = other.ReplyMsgKey;
       }
       if (other.Msg.Length != 0) {
         Msg = other.Msg;
@@ -454,8 +491,178 @@ namespace Matrix.MsgService.CommonMessages {
             IsArchived = input.ReadBool();
             break;
           }
+          case 80: {
+            ReplyMsgKey = input.ReadInt32();
+            break;
+          }
           case 122: {
             Msg = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
+  ///message for NACK MsgType
+  /// </summary>
+  public sealed partial class NackDetails : pb::IMessage<NackDetails> {
+    private static readonly pb::MessageParser<NackDetails> _parser = new pb::MessageParser<NackDetails>(() => new NackDetails());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<NackDetails> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Matrix.MsgService.CommonMessages.CommonMessagesReflection.Descriptor.MessageTypes[1]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public NackDetails() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public NackDetails(NackDetails other) : this() {
+      reason_ = other.reason_;
+      details_ = other.details_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public NackDetails Clone() {
+      return new NackDetails(this);
+    }
+
+    /// <summary>Field number for the "reason" field.</summary>
+    public const int ReasonFieldNumber = 1;
+    private int reason_;
+    /// <summary>
+    ///client/msgtype specific reason for the nack
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int Reason {
+      get { return reason_; }
+      set {
+        reason_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "details" field.</summary>
+    public const int DetailsFieldNumber = 2;
+    private string details_ = "";
+    /// <summary>
+    ///additional details
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Details {
+      get { return details_; }
+      set {
+        details_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as NackDetails);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(NackDetails other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Reason != other.Reason) return false;
+      if (Details != other.Details) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Reason != 0) hash ^= Reason.GetHashCode();
+      if (Details.Length != 0) hash ^= Details.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Reason != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Reason);
+      }
+      if (Details.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Details);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Reason != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Reason);
+      }
+      if (Details.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Details);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(NackDetails other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Reason != 0) {
+        Reason = other.Reason;
+      }
+      if (other.Details.Length != 0) {
+        Details = other.Details;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            Reason = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            Details = input.ReadString();
             break;
           }
         }
@@ -475,7 +682,7 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Matrix.MsgService.CommonMessages.CommonMessagesReflection.Descriptor.MessageTypes[1]; }
+      get { return global::Matrix.MsgService.CommonMessages.CommonMessagesReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -638,7 +845,7 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Matrix.MsgService.CommonMessages.CommonMessagesReflection.Descriptor.MessageTypes[2]; }
+      get { return global::Matrix.MsgService.CommonMessages.CommonMessagesReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

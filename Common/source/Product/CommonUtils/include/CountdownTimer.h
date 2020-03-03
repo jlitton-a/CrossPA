@@ -10,6 +10,7 @@ namespace Matrix
 {
 namespace Common
 {
+   /// <summary>
    /// A struct that can be used to kill a timer before it has elapsed
    /// </summary>
    struct timer_killer

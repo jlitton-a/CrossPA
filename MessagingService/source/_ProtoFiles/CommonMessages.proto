@@ -21,9 +21,10 @@ enum MsgType
    LOGOFF = 3;
    SUBSCRIBE = 4;
    UNSUBSCRIBE = 5;
+   NACK = 6;
    
    CUSTOM = 100;
-  
+ 
 }
 
 //For now, this message is here to help interpret all the other messages.
@@ -33,17 +34,23 @@ enum MsgType
 message Header {
    MsgType msgTypeID = 1;
    int32 msgKey = 2;
-   int32 origClientType = 3; //the client type of the originating client
-   int32 origClientID = 4;   //the client ID of the originating client
-   int32 destClientType = 5;	//the client type of the destination client if message is intended for a specific client
-   int32 destClientID = 6;	//the client type of the destination client if message is intended for a specific client
-   repeated int32 ackKeys = 7; //keys that this message is acking (does not have to be an ACK message
-   int32 topic = 8;
-   bool isArchived = 9;
+   int32 origClientType = 3;     //the client type of the originating client
+   int32 origClientID = 4;       //the client ID of the originating client
+   int32 destClientType = 5;	   //the client type of the destination client if message is intended for a specific client
+   int32 destClientID = 6;	      //the client type of the destination client if message is intended for a specific client
+   repeated int32 ackKeys = 7;   //keys that this message is acking (does not have to be an ACK message)
+   int32 topic = 8;              //topic of this message (for subscription purposes)
+   bool isArchived = 9;          //true if the sender was offline when it occurred
+   int32 replyMsgKey = 10;       //if non zero, this message is a reply to a message sent with msgKey equal to replyMsgKey
    
    bytes msg = 15;
 }
 
+//message for NACK MsgType
+message NackDetails {
+   int32 reason = 1;//client/msgtype specific reason for the nack
+   string details = 2; //additional details
+}
 
 //message for LOGON MsgType
 message Logon {

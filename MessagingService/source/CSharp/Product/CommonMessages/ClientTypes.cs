@@ -17,9 +17,21 @@ namespace Matrix.MsgService.CommonMessages
    ///</note>
    public enum ClientTypes
    {
+      /// <summary>
+      /// Unknown client type
+      /// </summary>
       Unknown = 0,
+      /// <summary>
+      /// MxDispatcher
+      /// </summary>
       MxDispatcher = 1,
+      /// <summary>
+      /// Assa Abloy DSRInterfaceService
+      /// </summary>
       AssaAbloy = 2,
+      /// <summary>
+      /// Workstation
+      /// </summary>
       Workstation = 3
    };
 }
