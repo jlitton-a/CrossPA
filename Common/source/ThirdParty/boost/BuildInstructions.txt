@@ -40,14 +40,17 @@ Windows
 1. Use 7-Zip to unzip CommonSDK\source\ThirdParty\Boost\boost_1_72_0.tar.bz2 to CommonSDK\source\ThirdParty\Boost\boost_1_72_0.tar
 1. Run the 7-Zip archiver as administrator.
 2. Select CommonSDK\source\ThirdParty\Boost\boost_1_72_0.tar and click Extract
-3. Check the "Eliminate duplicateion of root folder" check box and extract to
+3. Check the "Eliminate duplication of root folder" check box and extract to
    C:\Program Files\boost (e.g. resulting in the creation of the    C:\Program Files\boost\boost_1_72_0 directory.)
 3. Run cmd.exe as an administrator.
 4. cd "\Program Files\boost\boost_1_72_0"
 5. bootstrap
-6. 
-b2 --builddir=./build/x64 --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc-14.1 --threading=multi --runtime-link=shared --variant=debug debug-symbols=on -j 12
+6.
+for 32bit libraries 
 b2 --builddir=./build/Win32 --stagedir=./stage/Win32 address-model=32 --build-type=complete --toolset=msvc-14.1 --threading=multi --runtime-link=shared --variant=release debug-symbols=on -j 12
+
+if 64bit libraries are needed
+b2 --builddir=./build/x64 --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc-14.1 --threading=multi --runtime-link=shared --variant=debug debug-symbols=on -j 12
 
 7. The boost system library files are now in:
    C:\Program Files\boost\boost_1_72_0\bin.v2\libs
