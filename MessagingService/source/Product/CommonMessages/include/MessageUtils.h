@@ -32,7 +32,7 @@ namespace CommonMessages
       /// <param name="data">Pointer to the binary message</param>
       /// <param name="len">Length of the message</param>
       /// <returns>MsgType if found or INVALID_MSG_TYPE if not</returns>
-      static COMMONMESSAGES_API CommonMessages::MsgType GetMsgTypeID(const void* data, size_t len);
+      static COMMONMESSAGES_API CommonMessages::MsgType GetMsgTypeID(const void* data, int len);
 
       /// <summary>
       /// Helper function to get a Header Message 
@@ -41,7 +41,7 @@ namespace CommonMessages
       /// <param name="data">Pointer to the binary message</param>
       /// <param name="len">Length of the message</param>
       /// <returns>true if data was parsed into reqHdr</returns>
-      static COMMONMESSAGES_API bool ParseHeader(CommonMessages::Header& reqHdr, const void* data, size_t len);
+      static COMMONMESSAGES_API bool ParseHeader(CommonMessages::Header& reqHdr, const void* data, int len);
 
       /// <summary>
       /// Get a user-readable string for msgType 

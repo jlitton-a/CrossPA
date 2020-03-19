@@ -1,4 +1,4 @@
-﻿namespace Matrix.MessagingService.TestApp
+﻿namespace Matrix.MsgService.TestApp
 {
    partial class SubscriberForm
    {

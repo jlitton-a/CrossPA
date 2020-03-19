@@ -21,8 +21,8 @@ public:
    MOCK_METHOD1(AddToNeedToAckList, void(const Matrix::MsgService::CommonMessages::Header* const));
    MOCK_METHOD3(RemoveFromNeedToAckList, void(int, int, std::vector<int>));
    MOCK_METHOD2(GetNeedToAckList, std::vector<int>(int, int));
-   MOCK_METHOD3(SetClientOnLine, void(int, int, bool));
    MOCK_METHOD2(IsClientOnline, bool(int, int));
+   MOCK_METHOD3(SetClientOnLine, void(int, int, bool));
 
 };
-}
+};

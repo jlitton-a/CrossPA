@@ -4,7 +4,7 @@
 
 using namespace Matrix::MsgService::CommonMessages;
 
-MsgType MessageUtils::GetMsgTypeID(const void* data, size_t len)
+MsgType MessageUtils::GetMsgTypeID(const void* data, int len)
 {
    MsgType messageID = MsgType::INVALID_MSG_TYPE;
 
@@ -16,7 +16,7 @@ MsgType MessageUtils::GetMsgTypeID(const void* data, size_t len)
    return messageID;
 }
 
-bool MessageUtils::ParseHeader(Header& reqHdr, const void* data, size_t len)
+bool MessageUtils::ParseHeader(Header& reqHdr, const void* data, int len)
 {
    if (reqHdr.ParseFromArray(data, len))
    {

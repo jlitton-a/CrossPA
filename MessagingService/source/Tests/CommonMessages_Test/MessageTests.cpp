@@ -1,9 +1,19 @@
 #include <gtest/gtest.h>
 
+#include "MessageUtils.h"
 #include "Message.h"
 
 using namespace Matrix::MsgService;
 using namespace Matrix::MsgService::CommonMessages;
+
+//Test Fixture - use TEST_F when using a test fixture
+class MessageTest : public testing::Test {
+protected:
+   virtual void SetUp() {
+   }
+   virtual void TearDown() {
+   }
+};
 
 // Tests CreateEmptyMsg
 TEST(MessageTest, CreateEmptyMsg) {

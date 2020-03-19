@@ -11,11 +11,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
-using Matrix.MessagingService.CommonMessages;
-using Matrix.MessagingService.CommunicationUtils;
+using Matrix.MsgService.CommonMessages;
+using Matrix.MsgService.CommunicationUtils;
 using Google.Protobuf;
 
-namespace Matrix.MessagingService.TestApp
+namespace Matrix.MsgService.TestApp
 {
    /// <summary>
    /// Form for testing Messaging Service
@@ -35,7 +35,7 @@ namespace Matrix.MessagingService.TestApp
          logonInfoMsg.ClientType = Convert.ToInt32(_clientTypeTextBox.Text);
          logonInfoMsg.ClientID = Convert.ToInt32(_clientIDTextBox.Text);
 
-         _messengerClient = new ClientComm("TestApp", _ipAddressTextBox.Text, Convert.ToInt32(_portTextBox.Text), logonInfoMsg, 1000);
+         _messengerClient = new ClientComm("TestApp", _ipAddressTextBox.Text, Convert.ToInt32(_portTextBox.Text), logonInfoMsg, null, 1000);
          _messengerClient.ConnectionStatusChanged += _messengerClient_ConnectionStatusChanged;
          _messengerClient.MessageReceived += _messengerClient_MessageReceived;
 
@@ -154,9 +154,12 @@ namespace Matrix.MessagingService.TestApp
       private void AddText(string textToAdd)
       {
          if (_outputTextBox.InvokeRequired)
-            _outputTextBox.Invoke(new Action(() => _outputTextBox.AppendText(textToAdd + "\n")));
+            _outputTextBox.Invoke(new Action(() => AddText(textToAdd)));
          else
-            _outputTextBox.AppendText(textToAdd + "\n");
+         {
+            _outputTextBox.AppendText(textToAdd);
+            _outputTextBox.AppendText(Environment.NewLine);
+         }
       }
 
       /// <summary>

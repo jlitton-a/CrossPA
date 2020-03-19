@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Matrix.MessagingService.TestApp
+namespace Matrix.MsgService.TestApp
 {
 	static class Program
 	{

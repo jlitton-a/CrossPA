@@ -37,4 +37,4 @@ namespace testing
       MOCK_METHOD0(GetClientID, int());
    };
 
-}
+};

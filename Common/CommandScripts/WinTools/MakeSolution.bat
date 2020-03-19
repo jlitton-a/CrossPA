@@ -39,10 +39,20 @@ CD "%COMMON_BUILD_DIR%"
 ::--------------------------------------------------------
 :: Run CMake to generate the solution and project files
 ::--------------------------------------------------------
+if [%TARGET_CONFIG%]==[] (
+   SET TARGET_CONFIG=Win32
+)
+
+if [%TARGET_CONFIG%]==[Win32] (
+   SET TARGET=-G "Visual Studio 15 2017" -A Win32
+) else if [%TARGET_CONFIG%]==[x64] (
+   SET TARGET=-G "Visual Studio 15 2017" -A x64 -T host=x64
+)
+@echo TARGET_CONFIG=%TARGET_CONFIG%; TARGET=%TARGET%
 
 :: if it wasn't defined, see if it is in the path
 echo Making with path
-cmake.exe "%COMMON_MAIN_CMAKE_DIR%"
+cmake.exe %TARGET% "%COMMON_MAIN_CMAKE_DIR%"
 if %ERRORLEVEL%==0 (goto BuildSolution)
 
 echo try %CMAKEHOME%

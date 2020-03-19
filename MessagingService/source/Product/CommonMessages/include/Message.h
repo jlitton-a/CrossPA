@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdlib.h>
 #include "../stdafx.h"
 
 #ifdef _WIN32
@@ -14,6 +13,7 @@
 #ifdef _WIN32
 #pragma warning( pop )
 #endif
+#include <stdlib.h>
 
 using namespace google::protobuf::io;
 
@@ -23,8 +23,8 @@ namespace MsgService
 {
 namespace CommonMessages
 {
-   const int HDR_SIZE = 4;
-   const size_t MAX_MESSAGE_SIZE = 1048576;
+   const uint8_t HDR_SIZE = 4;
+   const int MAX_MESSAGE_SIZE = 1048576;
    /// <summary>
    /// Class for packing and unpacking messages into and out of a byte buffer 
    /// </summary>

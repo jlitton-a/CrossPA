@@ -16,6 +16,11 @@ if "%2"=="1" (
 ) else (
    SET NO_CLEAN_FIRST=0
 )
+if "%3"=="1" (
+   SET TARGET_CONFIG=x64
+) else (
+   SET TARGET_CONFIG=Win32
+)
 
 call "%WORKSPACE%\CommandScripts\WinTools\SetCommonEnv.bat"
 call "%COMMON_SCRIPT_HOME%\MakeSolution.bat" %SKIP_TESTS%

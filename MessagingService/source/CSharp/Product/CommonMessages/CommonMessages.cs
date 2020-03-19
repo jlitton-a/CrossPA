@@ -40,11 +40,11 @@ namespace Matrix.MsgService.CommonMessages {
             "TkFDSxAGEgoKBkNVU1RPTRBkQgJIA2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Matrix.MsgService.CommonMessages.MsgType), }, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Header), global::Matrix.MsgService.CommonMessages.Header.Parser, new[]{ "MsgTypeID", "MsgKey", "OrigClientType", "OrigClientID", "DestClientType", "DestClientID", "AckKeys", "Topic", "IsArchived", "ReplyMsgKey", "Msg" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.NackDetails), global::Matrix.MsgService.CommonMessages.NackDetails.Parser, new[]{ "Reason", "Details" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Logon), global::Matrix.MsgService.CommonMessages.Logon.Parser, new[]{ "ClientType", "ClientID" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Subscribe), global::Matrix.MsgService.CommonMessages.Subscribe.Parser, new[]{ "ClientType", "ClientID", "Topic" }, null, null, null)
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Matrix.MsgService.CommonMessages.MsgType), }, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Header), global::Matrix.MsgService.CommonMessages.Header.Parser, new[]{ "MsgTypeID", "MsgKey", "OrigClientType", "OrigClientID", "DestClientType", "DestClientID", "AckKeys", "Topic", "IsArchived", "ReplyMsgKey", "Msg" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.NackDetails), global::Matrix.MsgService.CommonMessages.NackDetails.Parser, new[]{ "Reason", "Details" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Logon), global::Matrix.MsgService.CommonMessages.Logon.Parser, new[]{ "ClientType", "ClientID" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Matrix.MsgService.CommonMessages.Subscribe), global::Matrix.MsgService.CommonMessages.Subscribe.Parser, new[]{ "ClientType", "ClientID", "Topic" }, null, null, null, null)
           }));
     }
     #endregion
@@ -125,7 +125,7 @@ namespace Matrix.MsgService.CommonMessages {
 
     /// <summary>Field number for the "msgTypeID" field.</summary>
     public const int MsgTypeIDFieldNumber = 1;
-    private global::Matrix.MsgService.CommonMessages.MsgType msgTypeID_ = 0;
+    private global::Matrix.MsgService.CommonMessages.MsgType msgTypeID_ = global::Matrix.MsgService.CommonMessages.MsgType.InvalidMsgType;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::Matrix.MsgService.CommonMessages.MsgType MsgTypeID {
       get { return msgTypeID_; }
@@ -297,7 +297,7 @@ namespace Matrix.MsgService.CommonMessages {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (MsgTypeID != 0) hash ^= MsgTypeID.GetHashCode();
+      if (MsgTypeID != global::Matrix.MsgService.CommonMessages.MsgType.InvalidMsgType) hash ^= MsgTypeID.GetHashCode();
       if (MsgKey != 0) hash ^= MsgKey.GetHashCode();
       if (OrigClientType != 0) hash ^= OrigClientType.GetHashCode();
       if (OrigClientID != 0) hash ^= OrigClientID.GetHashCode();
@@ -321,7 +321,7 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (MsgTypeID != 0) {
+      if (MsgTypeID != global::Matrix.MsgService.CommonMessages.MsgType.InvalidMsgType) {
         output.WriteRawTag(8);
         output.WriteEnum((int) MsgTypeID);
       }
@@ -370,7 +370,7 @@ namespace Matrix.MsgService.CommonMessages {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (MsgTypeID != 0) {
+      if (MsgTypeID != global::Matrix.MsgService.CommonMessages.MsgType.InvalidMsgType) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) MsgTypeID);
       }
       if (MsgKey != 0) {
@@ -412,7 +412,7 @@ namespace Matrix.MsgService.CommonMessages {
       if (other == null) {
         return;
       }
-      if (other.MsgTypeID != 0) {
+      if (other.MsgTypeID != global::Matrix.MsgService.CommonMessages.MsgType.InvalidMsgType) {
         MsgTypeID = other.MsgTypeID;
       }
       if (other.MsgKey != 0) {
@@ -455,7 +455,7 @@ namespace Matrix.MsgService.CommonMessages {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            msgTypeID_ = (global::Matrix.MsgService.CommonMessages.MsgType) input.ReadEnum();
+            MsgTypeID = (global::Matrix.MsgService.CommonMessages.MsgType) input.ReadEnum();
             break;
           }
           case 16: {

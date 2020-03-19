@@ -1,7 +1,11 @@
 :: Create the source files from the .proto file
 @echo off
+IF [%1]==[1] (
+   SET ProtocDir=%COMMON_THIRDPARTY_HOME%\lib\WinHost\x64\Release
+) ELSE (
+   SET ProtocDir=%COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Release
+)
 
-SET ProtocDir=%COMMON_THIRDPARTY_HOME%\lib\WinHost\Release
 set build_error=0
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
