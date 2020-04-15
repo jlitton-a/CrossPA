@@ -1576,7 +1576,10 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(ackMsg, (Exception)null));
 
          //Checks
-         Assert.AreEqual(sentMsg, contextMsgSent);
+         Assert.AreEqual(MsgType.Ack, contextMsgSent.MsgTypeID, "MsgTypeID wrong");
+         Assert.AreEqual(sentMsg.MsgKey, contextMsgSent.MsgKey, "MsgKey wrong");
+         Assert.AreEqual(sentMsg.OrigClientID, contextMsgSent.OrigClientID, "OrigClientID wrong");
+         Assert.AreEqual(sentMsg.OrigClientType, contextMsgSent.OrigClientType, "OrigClientTYpe wrong");
       }
       [TestMethod]
       public void MessageReceived_AckKeys_CallsClientContextAckReceived()
@@ -1614,7 +1617,9 @@ namespace Matrix.MsgService.CommunicationUtils.Test
          _connectionHandlerMock.MessageReceived += Raise.EventWith(new Matrix.MsgService.CommunicationUtils.ConnectionHandler.MessageDetails(ackMsg, (Exception)null));
 
          //Checks
-         Assert.AreEqual(sentMsg, contextMsgSent);
+         Assert.AreEqual(sentMsg.MsgTypeID, contextMsgSent.MsgTypeID, "MsgTypeID wrong");
+         Assert.AreEqual(sentMsg.OrigClientID, contextMsgSent.OrigClientID,"OrigClientID wrong");
+         Assert.AreEqual(sentMsg.OrigClientType, contextMsgSent.OrigClientType, "OrigClientTYpe wrong");
       }
       [TestMethod]
       public void MessageReceived_ReplyMsg_CallsClientContextMessageReceived()
