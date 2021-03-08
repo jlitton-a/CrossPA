@@ -23,6 +23,8 @@ namespace CommonMessages
       Unknown = 0,
       MxDispatcher = 1,
       AssaAbloy = 2,
+      Workstation = 3,
+      AlarmNotification = 4,
    };
 }
 }
