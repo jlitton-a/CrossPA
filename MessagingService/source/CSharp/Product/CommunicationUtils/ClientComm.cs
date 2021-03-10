@@ -500,7 +500,7 @@ namespace Matrix.MsgService.CommunicationUtils
 		/// <summary>
 		/// Arguments for the ConnectionStatusChanged event
 		/// </summary>
-		public class ConnectionStatusChangedEventArgs
+		public class ConnectionStatusChangedEventArgs : EventArgs
 		{
          /// <summary>
          /// Constructor
