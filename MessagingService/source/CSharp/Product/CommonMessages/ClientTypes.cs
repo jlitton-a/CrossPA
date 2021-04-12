@@ -32,6 +32,10 @@ namespace Matrix.MsgService.CommonMessages
       /// <summary>
       /// Workstation
       /// </summary>
-      Workstation = 3
+      Workstation = 3,
+      /// <summary>
+      /// Alarm Notification Service
+      /// </summary>
+      AlarmNotification = 4,
    };
 }
