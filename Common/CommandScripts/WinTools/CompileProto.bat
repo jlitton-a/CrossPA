@@ -53,7 +53,26 @@ if exist %ProtoFilePath%.tmp (
 move %ProtoFilePath% %ProtoFilePath%.tmp
 echo.#ifdef _WIN32>>%ProtoFilePath%
 echo.#pragma warning( push )>>%ProtoFilePath%
-echo.#pragma warning( disable: 4251 4100 4146)>>%ProtoFilePath%
+echo.#pragma warning( disable: 4251 4100 4146 4018 4267 4244 4127 26495 26812 6387 6385)>>%ProtoFilePath%
+echo.#endif>>%ProtoFilePath%
+type %ProtoFilePath%.tmp >>%ProtoFilePath%
+echo.#ifdef _WIN32>>%ProtoFilePath%
+echo.#pragma warning( pop )>>%ProtoFilePath%
+echo.#endif>>%ProtoFilePath%
+if exist %ProtoFilePath%.tmp (
+   del %ProtoFilePath%.tmp
+)
+
+:: Want to suppress warnings in compilation of the .h file
+SET ProtoFilePath=%CodeHome%\%ProtoFileName%.pb.h
+@echo working on %ProtoFilePath%
+if exist %ProtoFilePath%.tmp (
+   del %ProtoFilePath%.tmp
+)
+move %ProtoFilePath% %ProtoFilePath%.tmp
+echo.#ifdef _WIN32>>%ProtoFilePath%
+echo.#pragma warning( push )>>%ProtoFilePath%
+echo.#pragma warning( disable: 4251 4100 4146 4018 4267 4244 4127 26495 26812 6387 6385)>>%ProtoFilePath%
 echo.#endif>>%ProtoFilePath%
 type %ProtoFilePath%.tmp >>%ProtoFilePath%
 echo.#ifdef _WIN32>>%ProtoFilePath%

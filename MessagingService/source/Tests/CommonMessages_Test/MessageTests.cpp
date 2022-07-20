@@ -33,7 +33,7 @@ TEST(MessageTest, PackMsg) {
    Header myMsg;
    myMsg.set_msgkey(5);
    Message msg;
-
+    
    //Test
    int totalSize = msg.PackMsg(myMsg);
 

@@ -69,7 +69,10 @@ namespace Common
       // Constructors/Destructors
       //****************************************
    public:
-      CountdownTimer()
+      CountdownTimer() :
+          _numMilliseconds{ 0 },
+          _onceOnly{ false },
+          _stopCompleted{ false }
       {
       }
       ~CountdownTimer()

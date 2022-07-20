@@ -45,8 +45,8 @@ namespace Common
       /// Initializes a new instance of the <see cref="WorkerThread"/> class.
       /// </summary>
       /// <param name="threadName">A name to use when logging</param>
-      COMMONUTILS_API WorkerThread(std::string threadName);
-      COMMONUTILS_API WorkerThread() {}
+       COMMONUTILS_API WorkerThread(std::string threadName);
+//      COMMONUTILS_API WorkerThread() {}
       COMMONUTILS_API virtual ~WorkerThread();
 
       //****************************************
@@ -69,10 +69,6 @@ namespace Common
       /// a String representation of the thread identifier
       /// </summary>
       std::string mThreadID;
-      /// <summary>
-      /// Amount of time between calls to ExecuteLoopActions()
-      /// </summary>
-      uint32_t mLoopFreqMS;
    private:
       /// <summary>
       /// The thread that is running

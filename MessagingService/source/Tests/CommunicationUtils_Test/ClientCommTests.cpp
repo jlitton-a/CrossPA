@@ -10,6 +10,11 @@
 #include "MessageUtils.h"
 #include "SubscriberMessageListsMock.h"
 
+//disable Inherits Via Dominance warning
+#ifdef _WIN32
+#pragma warning( push )
+#pragma warning( disable: 4250)
+#endif
 
 using namespace Matrix::Common;
 using namespace Matrix::MsgService::CommunicationUtils;
@@ -41,7 +46,6 @@ public:
    {
       ClientComm::HandleMessageReceived(std::move(pMsg));
    }
-
 };
 
 //Test Fixture - use TEST_F when using a test fixture
@@ -204,7 +208,7 @@ TEST_F(ClientCommTest, SendCommonMsg_WithClientType_CallsAddSentMessage) {
    pClientComm->SendCommonMsg(Matrix::MsgService::CommonMessages::MsgType::CUSTOM, &msgToSend, 0, 1, 5);
 
    //Expectations
-
+    
    //Cleanup
    pClientComm = nullptr;
 }
@@ -471,3 +475,6 @@ TEST_F(ClientCommTest, SendCommonMsgAndWait_InAckKeys_ReturnsMessage) {
    //Cleanup
    pClientComm = nullptr;
 }
+#ifdef _WIN32
+#pragma warning( pop )
+#endif

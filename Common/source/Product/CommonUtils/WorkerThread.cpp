@@ -2,6 +2,7 @@
 #include <utility>
 #include <memory>
 #include <vector>
+#include <functional>
 
 #include "WorkerThread.h"
 

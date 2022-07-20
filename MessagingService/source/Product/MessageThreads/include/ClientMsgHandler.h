@@ -1,4 +1,5 @@
 #pragma once
+
 //disable Inherits Via Dominance warning
 #ifdef _WIN32
 #pragma warning( push )
@@ -6,7 +7,7 @@
 #endif
 
 #include <memory>
-#include <boost/asio.hpp>
+#include "IncludeBoostASIO.h"
 
 #include "../stdafx.h"
 #include "SharedFromThis.h"

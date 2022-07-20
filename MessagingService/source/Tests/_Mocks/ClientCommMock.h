@@ -32,8 +32,7 @@ public:
 
    //IClientComm
    MOCK_METHOD0(Connect, bool());
-   MOCK_METHOD6(SendCommonMsg, int(Matrix::MsgService::CommonMessages::MsgType, const google::protobuf::MessageLite* const
-         , int, int, int, bool));
+   MOCK_METHOD6(SendCommonMsg, int(Matrix::MsgService::CommonMessages::MsgType, const google::protobuf::MessageLite* , int, int, int, bool));
    MOCK_METHOD3(Subscribe, bool(Matrix::MsgService::CommonMessages::ClientTypes, int, bool));
 };
 }

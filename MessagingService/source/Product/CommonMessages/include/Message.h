@@ -24,6 +24,7 @@ namespace MsgService
 namespace CommonMessages
 {
    const uint8_t HDR_SIZE = 4;
+//   const int MAX_MESSAGE_SIZE = 16300;
    const int MAX_MESSAGE_SIZE = 1048576;
    /// <summary>
    /// Class for packing and unpacking messages into and out of a byte buffer 
@@ -34,11 +35,18 @@ namespace CommonMessages
       //TODO - use vector so we can accept any size message?
       typedef std::vector<uint8_t> DataBuffer;
 
-      Message() {}
-      ~Message() {}
+      Message() { _buffer = (char*)malloc(HDR_SIZE + MAX_MESSAGE_SIZE); }
+      ~Message() 
+      { 
+          if (_buffer != NULL)
+          {
+              free(_buffer);
+              _buffer = NULL;
+          }
+      }
    private:
       Header _msg;
-      char _buffer[HDR_SIZE + MAX_MESSAGE_SIZE];
+      char* _buffer;
 
    public:
       /// <summary>

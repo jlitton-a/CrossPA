@@ -1,6 +1,7 @@
 #pragma once
+
 #include <memory>
-#include <boost/asio.hpp>
+#include "IncludeBoostASIO.h"
 #ifdef USING_SSL
 #include <boost/asio/ssl.hpp>
 #endif

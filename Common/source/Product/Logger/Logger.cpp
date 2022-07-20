@@ -1,8 +1,16 @@
+#ifdef _WIN32
+#pragma warning( push )
+#pragma warning( disable: 6031 26812 26451 6388 6285 26498 26110 26495 26439 26812)
+#endif
 #include <boost/log/core.hpp>
 #include <boost/log/sources/basic_logger.hpp>
 #include <boost/log/support/date_time.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <boost/core/null_deleter.hpp>
+#ifdef _WIN32
+#pragma warning( pop )
+#endif
+
 #include "Logger.h"
 
 // Commonly used boost type nicknames.

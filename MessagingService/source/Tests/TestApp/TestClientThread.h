@@ -1,7 +1,6 @@
 #pragma once
 
-#include <boost/asio.hpp>
-
+#include "IncludeBoostASIO.h"
 #include "stdafx.h"
 #include "TimedThread.h"
 #include "Message.h"

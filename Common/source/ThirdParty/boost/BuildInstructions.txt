@@ -5,8 +5,8 @@ Linux-Cylon
  3. cd ~
  4. mkdir boost
  5. cd boost
- 6. tar -xvjf ${COMMON_THIRDPARTY_HOME}/boost/boost_1_72_0.tar.bz2
- 7. cd boost_1_72_0
+ 6. tar -xvjf ${COMMON_THIRDPARTY_HOME}/boost/boost_1_76_0.tar.bz2
+ 7. cd boost_1_76_0
  8. sudo rsync -rlptDWv boost/ ${CROSS_COMPILE_FULL_HOST}/usr/include/boost/
  9. . ${COMMON_SCRIPT_HOME}/SetJenkinsEnvLinux.sh
 10. ./bootstrap.sh --with-libraries=date_time,regex,system,log --prefix=/usr
@@ -14,7 +14,7 @@ Linux-Cylon
       "using gcc : arm : arm-angstrom-linux-gnueabi-g++ ;"
 12. . ${COMMON_SCRIPT_HOME}/SetCylonEnv.sh
 13. ./b2 variant=release link=shared threading=multi
-14. cp stage/lib/libboost*.so.1.72.0 ${COMMON_THIRDPARTY_LIB_PATH_RELEASE}
+14. cp stage/lib/libboost*.so.1.76.0 ${COMMON_THIRDPARTY_LIB_PATH_RELEASE}
 15. Add/update the new library files in to the TFS.
 16. The local ~/boost directory can now be removed.
 
@@ -25,39 +25,41 @@ Linux-Ubuntu
  3. cd ~
  4. mkdir boost
  5. cd boost
- 6. tar -xvjf ${COMMON_THIRDPARTY_HOME}/boost/boost_1_72_0.tar.bz2
+ 6. tar -xvjf ${COMMON_THIRDPARTY_HOME}/boost/boost_1_76_0.tar.bz2
  7. sudo mkdir /usr/local/include/boost
- 8. cd boost_1_72_0
+ 8. cd boost_1_76_0
  9. sudo rsync -rlptDWv boost/ /usr/local/include/boost/
 10. ./bootstrap.sh --with-libraries=date_time,regex,system,log
 11. ./b2 variant=release link=shared threading=multi
-12. cp stage/lib/libboost*.so.1.72.0 ${COMMON_THIRDPARTY_LIB_PATH_RELEASE}
+12. cp stage/lib/libboost*.so.1.76.0 ${COMMON_THIRDPARTY_LIB_PATH_RELEASE}
 13. Add/update the new library files in to the TFS.
 14. The local ~/boost directory can now be removed.
 
 Windows
 =======
-1. Use 7-Zip to unzip CommonSDK\source\ThirdParty\Boost\boost_1_72_0.tar.bz2 to CommonSDK\source\ThirdParty\Boost\boost_1_72_0.tar
 1. Run the 7-Zip archiver as administrator.
-2. Select CommonSDK\source\ThirdParty\Boost\boost_1_72_0.tar and click Extract
+2. Select CommonSDK\source\ThirdParty\Boost\boost_1_76_0.7z and click Extract
 3. Check the "Eliminate duplication of root folder" check box and extract to
-   C:\Program Files\boost (e.g. resulting in the creation of the    C:\Program Files\boost\boost_1_72_0 directory.)
+   C:\Program Files\boost (e.g. resulting in the creation of the    C:\Program Files\boost\boost_1_76_0 directory.)
 3. Run cmd.exe as an administrator.
-4. cd "\Program Files\boost\boost_1_72_0"
+4. cd "\Program Files\boost\boost_1_76_0"
 5. bootstrap
 6.
-for 32bit libraries 
-b2 --builddir=./build/Win32 --stagedir=./stage/Win32 address-model=32 --build-type=complete --toolset=msvc-14.1 --threading=multi --runtime-link=shared --variant=release debug-symbols=on -j 12
+for 32bit libraries (when changing to a new Visual Studio version, modify --toolset=msvc-14.2 to be the new toolset version)
+b2 --builddir=./build/Win32 --stagedir=./stage/Win32 address-model=32 --build-type=complete --toolset=msvc-14.2 --threading=multi --runtime-link=shared --variant=release debug-symbols=on -j 12
 
 if 64bit libraries are needed
-b2 --builddir=./build/x64 --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc-14.1 --threading=multi --runtime-link=shared --variant=debug debug-symbols=on -j 12
+b2 --builddir=./build/x64 --stagedir=./stage/x64 address-model=64 --build-type=complete --toolset=msvc-14.2 --threading=multi --runtime-link=shared --variant=debug debug-symbols=on -j 12
 
 7. The boost system library files are now in:
-   C:\Program Files\boost\boost_1_72_0\bin.v2\libs
+   C:\Program Files\boost\boost_1_76_0\bin.v2\libs
    
 !! The following steps are only needed when updating the project to a new boost version !!
-   
-8. Run CopyBinaries.bat to Copy the dll, lib, and pdb files from the appropriate directories above to:
+
+8. Modify CopyBinaries.bat to change the BoostBinFolder to the new boost version path and MSVCVersion to the new Visual Studio toolset version.
+9. Run CopyBinaries.bat to Copy the dll, lib, and pdb files from the appropriate directories above to:
    CommonSDK\source\ThirdParty\lib\WinHost\Debug
    CommonSDK\source\ThirdParty\lib\WinHost\Release
-9. Add and commit the new files in %COMMON_THIRDPARTY_HOME% to the Common ThirdParty repository.
+10. Add and commit the new files in %COMMON_THIRDPARTY_HOME% to the Common ThirdParty repository.
+11. Modify CommonSDK\source\CMakeInclude.txt to change all the boost references to the new version of boost and the new version of msvc. 
+12. Modify MxDispatch Additional Include directories to change to the new boost version

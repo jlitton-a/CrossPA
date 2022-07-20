@@ -1,12 +1,12 @@
 #pragma once
+
 //disable Inherits Via Dominance warning
 #ifdef _WIN32
 #pragma warning( push )
 #pragma warning( disable: 4250)
 #endif
 
-
-#include <boost/asio.hpp>
+#include "IncludeBoostASIO.h"
 #include <memory>
 
 #include "../stdafx.h"
@@ -173,7 +173,7 @@ namespace CommunicationUtils
       /// <param name="destClientID">The specific client ID to send to, 0 for all</param>
       /// <param name="isArchived">True to set the isArchived bit in the message</param>
       COMMUNICATIONUTILS_API int SendCommonMsg(CommonMessages::MsgType msgType
-            , const google::protobuf::MessageLite* const pMessage = nullptr
+            , const google::protobuf::MessageLite* pMessage = nullptr
             , int topic = 0
             , int destClientType = 0
             , int destClientID = 0

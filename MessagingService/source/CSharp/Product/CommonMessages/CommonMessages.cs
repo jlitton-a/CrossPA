@@ -79,7 +79,11 @@ namespace Matrix.MsgService.CommonMessages {
   ///we are just including the two fields in each message.
   ///msgKey is an integer sequence that is used to marry a reply message to a request message
   /// </summary>
-  public sealed partial class Header : pb::IMessage<Header> {
+  public sealed partial class Header : pb::IMessage<Header>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Header> _parser = new pb::MessageParser<Header>(() => new Header());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -321,6 +325,9 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (MsgTypeID != global::Matrix.MsgService.CommonMessages.MsgType.InvalidMsgType) {
         output.WriteRawTag(8);
         output.WriteEnum((int) MsgTypeID);
@@ -365,7 +372,58 @@ namespace Matrix.MsgService.CommonMessages {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (MsgTypeID != global::Matrix.MsgService.CommonMessages.MsgType.InvalidMsgType) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) MsgTypeID);
+      }
+      if (MsgKey != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(MsgKey);
+      }
+      if (OrigClientType != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(OrigClientType);
+      }
+      if (OrigClientID != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(OrigClientID);
+      }
+      if (DestClientType != 0) {
+        output.WriteRawTag(40);
+        output.WriteInt32(DestClientType);
+      }
+      if (DestClientID != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(DestClientID);
+      }
+      ackKeys_.WriteTo(ref output, _repeated_ackKeys_codec);
+      if (Topic != 0) {
+        output.WriteRawTag(64);
+        output.WriteInt32(Topic);
+      }
+      if (IsArchived != false) {
+        output.WriteRawTag(72);
+        output.WriteBool(IsArchived);
+      }
+      if (ReplyMsgKey != 0) {
+        output.WriteRawTag(80);
+        output.WriteInt32(ReplyMsgKey);
+      }
+      if (Msg.Length != 0) {
+        output.WriteRawTag(122);
+        output.WriteBytes(Msg);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -448,6 +506,9 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -501,14 +562,78 @@ namespace Matrix.MsgService.CommonMessages {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            MsgTypeID = (global::Matrix.MsgService.CommonMessages.MsgType) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            MsgKey = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            OrigClientType = input.ReadInt32();
+            break;
+          }
+          case 32: {
+            OrigClientID = input.ReadInt32();
+            break;
+          }
+          case 40: {
+            DestClientType = input.ReadInt32();
+            break;
+          }
+          case 48: {
+            DestClientID = input.ReadInt32();
+            break;
+          }
+          case 58:
+          case 56: {
+            ackKeys_.AddEntriesFrom(ref input, _repeated_ackKeys_codec);
+            break;
+          }
+          case 64: {
+            Topic = input.ReadInt32();
+            break;
+          }
+          case 72: {
+            IsArchived = input.ReadBool();
+            break;
+          }
+          case 80: {
+            ReplyMsgKey = input.ReadInt32();
+            break;
+          }
+          case 122: {
+            Msg = input.ReadBytes();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   ///message for NACK MsgType
   /// </summary>
-  public sealed partial class NackDetails : pb::IMessage<NackDetails> {
+  public sealed partial class NackDetails : pb::IMessage<NackDetails>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<NackDetails> _parser = new pb::MessageParser<NackDetails>(() => new NackDetails());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -607,6 +732,9 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Reason != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(Reason);
@@ -618,7 +746,25 @@ namespace Matrix.MsgService.CommonMessages {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Reason != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Reason);
+      }
+      if (Details.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Details);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -651,6 +797,9 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -667,14 +816,41 @@ namespace Matrix.MsgService.CommonMessages {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Reason = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            Details = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   ///message for LOGON MsgType
   /// </summary>
-  public sealed partial class Logon : pb::IMessage<Logon> {
+  public sealed partial class Logon : pb::IMessage<Logon>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Logon> _parser = new pb::MessageParser<Logon>(() => new Logon());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -770,6 +946,9 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ClientType != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(ClientType);
@@ -781,7 +960,25 @@ namespace Matrix.MsgService.CommonMessages {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ClientType != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(ClientType);
+      }
+      if (ClientID != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(ClientID);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -814,6 +1011,9 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -830,14 +1030,41 @@ namespace Matrix.MsgService.CommonMessages {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ClientType = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            ClientID = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   /// <summary>
   ///message for SUBSCRIBE/UNSUBSCRIBE MsgTypes
   /// </summary>
-  public sealed partial class Subscribe : pb::IMessage<Subscribe> {
+  public sealed partial class Subscribe : pb::IMessage<Subscribe>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Subscribe> _parser = new pb::MessageParser<Subscribe>(() => new Subscribe());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -944,6 +1171,9 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ClientType != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(ClientType);
@@ -959,7 +1189,29 @@ namespace Matrix.MsgService.CommonMessages {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ClientType != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(ClientType);
+      }
+      if (ClientID != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(ClientID);
+      }
+      if (Topic != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(Topic);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -998,6 +1250,9 @@ namespace Matrix.MsgService.CommonMessages {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1018,7 +1273,34 @@ namespace Matrix.MsgService.CommonMessages {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ClientType = input.ReadInt32();
+            break;
+          }
+          case 16: {
+            ClientID = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            Topic = input.ReadInt32();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 

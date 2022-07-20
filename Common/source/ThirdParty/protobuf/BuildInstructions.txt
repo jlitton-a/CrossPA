@@ -8,28 +8,15 @@
  5.	cd winbuild
  6.	cmake ..\cmake -Dprotobuf_BUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=install -Dprotobuf_BUILD_TESTS=OFF -AWin32
 
- 7. do not close the command prompt but open the just created winbuild\protobuf.sln in visual studio 2015
+ 7. do not close the command prompt but open the just created winbuild\protobuf.sln in visual studio 2019
  8. open properties on both libprotobuf and libprotobuf-lite and make sure C/C++ - Code Generation - Runtime Library #   is set to /MDd for Debug and /MD for RelWithDebInfo
  9. set configuration to Debug
 10. build all
 11. set configuration to Release
 12. build all
-13. From the same command prompt from above, copy files to third party prebuilt library directories:
-	copy Debug\libprotobufd.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Debug\libprotobufd.lib
-	copy Debug\libprotobufd.pdb %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Debug\libprotobufd.pdb
-	copy Debug\libprotobufd.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Debug\libprotobufd.dll
-	copy Debug\libprotobuf-lited.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Debug\libprotobuf-lited.lib
-	copy Debug\libprotobuf-lited.pdb %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Debug\libprotobuf-lited.pdb
-	copy Debug\libprotobuf-lited.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Debug\libprotobuf-lited.dll
-
-	copy Release\libprotobuf.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Release\libprotobuf.lib
-	copy Release\libprotobuf.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Release\libprotobuf.dll
-	copy Release\libprotobuf-lite.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Release\libprotobuf-lite.lib
-	copy Release\libprotobuf-lite.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Release\libprotobuf-lite.dll
-	copy Release\libprotoc.lib %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Release\libprotoc.lib
-	copy Release\libprotoc.dll %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Release\libprotoc.dll
-	copy Release\protoc.exe %COMMON_THIRDPARTY_HOME%\lib\WinHost\Win32\Release\protoc.exe
-
+13. From the same command prompt from above, run extract_includes.bat
+13. Then run CopyFiles.bat to copy files to third party prebuilt library directories:
+%COMMON_THIRDPARTY_HOME%\protobuf\CopyFiles.bat
 14. copy winbuild\install\google to %COMMON_THIRDPARTY_HOME%\protobuf\
     NOTE:  if there is no install directory under winbuild, you may need to rebuild the INSTALL project
 

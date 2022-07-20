@@ -17,7 +17,7 @@ int Message::CreateEmptyMsg()
 int Message::PackMsg(const Header& msg)
 {
    _msg = msg;
-   auto msgSize = msg.ByteSize();
+   auto msgSize = msg.ByteSizeLong();
    auto totalSize = msgSize + HDR_SIZE;
    google::protobuf::io::ArrayOutputStream aos(_buffer, totalSize);
    // We create a new coded stream for each message.  Don't worry, this is fast.
@@ -83,7 +83,7 @@ bool Message::writeDelimitedTo(const google::protobuf::MessageLite& message,
    google::protobuf::io::CodedOutputStream output(rawOutput);
 
    // Write the size.
-   int size = message.ByteSize();
+   int size = message.ByteSizeLong();
    output.WriteVarint32(size);
 
    uint8_t* buffer = output.GetDirectBufferForNBytesAndAdvance(size);

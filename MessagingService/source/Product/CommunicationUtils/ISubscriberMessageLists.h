@@ -40,7 +40,7 @@ namespace CommunicationUtils
       /// </summary>
       /// <param name="msg">message to add</param>
       /// <returns>true if the message was added</returns>
-      virtual bool AddSentMessage(const Matrix::MsgService::CommonMessages::Header msg) = 0;
+      virtual bool AddSentMessage(Matrix::MsgService::CommonMessages::Header msg) = 0;
       /// <summary>
       /// Removes each message with a key in ackKeys from the subscriber
       /// </summary>
@@ -72,7 +72,7 @@ namespace CommunicationUtils
       /// for each subscribing client
       /// </summary>
       /// <param name="msg">the message to add to the list of keys that need to be acked</param>
-      virtual void AddToNeedToAckList(const Matrix::MsgService::CommonMessages::Header* const pMsg) = 0;
+      virtual void AddToNeedToAckList(const Matrix::MsgService::CommonMessages::Header* pMsg) = 0;
       /// <summary>
       /// Removes msg keys from the list of msg keys that need to be acked
       /// </summary>

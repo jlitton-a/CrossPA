@@ -34,7 +34,7 @@ namespace CommunicationUtils
       /// <param name="destClientID">The specific client ID to send to, 0 for all</param>
       /// <param name="isArchived">true to set the isArchived flag in the message</param>
       virtual int SendCommonMsg(CommonMessages::MsgType msgType
-         , const google::protobuf::MessageLite* const pMessage = nullptr
+         , const google::protobuf::MessageLite* pMessage = nullptr
          , int topic = 0
          , int destClientType = 0
          , int destClientID = 0
