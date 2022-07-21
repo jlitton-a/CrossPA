@@ -44,9 +44,9 @@ if [%TARGET_CONFIG%]==[] (
 )
 
 if [%TARGET_CONFIG%]==[Win32] (
-   SET TARGET=-G "Visual Studio 16 2019" -A Win32
+   SET TARGET=-G "Visual Studio 17 2022" -A Win32
 ) else if [%TARGET_CONFIG%]==[x64] (
-   SET TARGET=-G "Visual Studio 16 2019" -A x64 -T host=x64
+   SET TARGET=-G "Visual Studio 17 2022" -A x64 -T host=x64
 )
 @echo TARGET_CONFIG=%TARGET_CONFIG%; TARGET=%TARGET%
 

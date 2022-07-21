@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.21)
 
 # !!! Set up the compiler to use, first (i.e. before the PROJECT() call.)
 if (UNIX)
